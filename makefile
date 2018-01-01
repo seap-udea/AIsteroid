@@ -19,3 +19,11 @@ pull:
 	@-git reset --hard HEAD
 	@-git pull origin $(BRANCH)
 
+pack:
+	@echo "Packing data..."
+	@bash .store/pack.sh pack
+
+unpack:
+	@echo "Unpacking data..."
+	@bash .store/pack.sh unpack
+

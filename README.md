@@ -205,6 +205,9 @@ Known problems
 The package is not perfect.  This are some of the known problems of
 the package in the present release.
 
+* The coordinates of the reference stars are a different from that
+  detected by Astrometrica.
+
 Releases 
 --------
 

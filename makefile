@@ -1,3 +1,4 @@
+include makefile.in
 BRANCH=$(shell bash .getbranch)
 
 aisteroid:

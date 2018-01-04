@@ -1,5 +1,8 @@
 BRANCH=$(shell bash .getbranch)
 
+aisteroid:
+	@-$(PYTHON) detect.py
+
 clean:
 	find . -name "*~" -exec rm {} \;
 	find . -name "#*#" -exec rm {} \;

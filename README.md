@@ -56,11 +56,41 @@ simple steps:
 3. Edit the configuration file, ``aisteroid.cfg``:
 
    ```
-      #Configuration file
-      SET="example"
-      CFG="example"
-      TEAM="NEA"
+      SET="example" #Name of the zip file containing the observation set
+      CFG="example" #Name of the configuration file
+      TEAM="NEA" #Name of the team performing the observations
    ```
+
+4. Run the astrometry procedure:
+   
+   ```
+   python astometry.py
+   ```
+   
+5. Run the detection procedure:
+
+   ```
+   python detect.py
+   ```
+
+5. Run the photometry procedure:
+
+   ```
+   python photometry.py
+   ```
+   
+6. Create a MPC report:
+
+   ```
+   python report.py
+   ```
+   
+If your are confident of your data you may perform the whole procedure
+at once using:
+
+```
+make aisteroid
+```
 
 Downloading and installating
 ----------------------------

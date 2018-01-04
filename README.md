@@ -92,10 +92,8 @@ at once using:
 make aisteroid
 ```
 
-And voilà!  
-
-Your asteroid must be detected!The main output from this procedure
-should be an image like this:
+And voila! your asteroids must be detected!. The main output of this
+procedure is the following image:
 
 ![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-detection.gif)
 
@@ -138,6 +136,40 @@ Image set: ps1-20170913_1_set142
 Downloading and installating
 ----------------------------
 
+In order to get the package you need to download it and installing all
+the required prerrequisites.  For this purpose follow the procedure
+below:
+
+1. Clone the package:
+
+   ```
+   git clone https://github.com/seap-udea/AIsteroid.git   
+   ```
+
+2. Create a ``makefile.in`` from the provided template:
+
+   ```
+   cp makefile.in.temp makefile.in
+   ```
+   
+3. Modify the variables in the file ``makefile.in`` to adjust it to
+   your system preferences:
+
+   ```
+   PYTHON=python3.5
+   ```
+   
+4. Install the prerequisites:
+
+   a. [Astrometry.net](http://astrometry.net/use.html): download and
+      compile from the sources.
+
+   b. Python dependencies: using your preferred python run the
+      following command to install python dependencies
+   
+      ```
+      python pip -m install astropy matplotlib 
+      ```
 
 Known problems
 --------------

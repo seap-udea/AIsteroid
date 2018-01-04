@@ -140,3 +140,8 @@ def imageProps(image,cfg):
     #print("\tCCD Field (deg): %f x %f"%(sizex*pxdx,sizey*pxdy))
     #print("\tAverage pixel size (arcsec):",pxsize/ARCSEC)
     return pxdx,pxdy,sizex,sizey
+
+def waterMark(ax):
+    ax.text(0.99,0.99,"http://bit.ly/aisteroid",fontsize=8,color='b',
+            ha='right',va='top',rotation=90,transform=ax.transAxes)
+

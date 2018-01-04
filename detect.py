@@ -355,6 +355,7 @@ fig=plt.figure(figsize=(8,8))
 imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
 im=plt.imshow(images[0]["data"],animated=True,**imgargs)
 tm=plt.title("Set %s, Image 0: "%SET+images[0]["obstime"],fontsize=10)
+waterMark(fig.gca())
 
 plt.axis("off")
 fig.tight_layout()
@@ -382,8 +383,7 @@ fig=plt.figure(figsize=(8,8))
 imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
 im=plt.imshow(images[0]["data"],animated=True,**imgargs)
 tm=plt.title("Set %s, Image 0: "%SET+images[0]["obstime"],fontsize=10)
-plt.text(0.99,0.99,"http://bit.ly/aisteroid",fontsize=8,color='b',
-         ha='right',va='top',rotation=90,transform=fig.gca().transAxes)
+waterMark(fig.gca())
 
 for mobj in range(1,nobj+1):
     cond=allsources.loc[indxs].MOBJ==mobj

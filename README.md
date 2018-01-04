@@ -17,3 +17,4 @@ see 4, probably you are a machine! (to see the actual number of moving
 objects see the image in [this
 link](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-detection.gif)).
 
+This is precisely the purpose of **AIsteroid**. 

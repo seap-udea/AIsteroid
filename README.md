@@ -185,6 +185,18 @@ below:
 
 If all the tests are passed you are ready to use **AIsteroid**.
 
+IPython Scripts
+---------------
+
+You may prefer to run all the procedures using a graphical controled
+environment.  For that purpose we have provided the iPython notebook
+``AIsteroid.ipynb`` that provide the required environment to automatic
+search for asteroids in an image set.
+
+The notebook could be outdated with respect to the main detection
+pipeline scripts (``astrometry.py``, ``detect.py``, ``photometry.py``,
+``report.py``).
+
 Known problems
 --------------
 
@@ -200,6 +212,10 @@ provided the example image sets required to test the algorithms.
 Special thanks to Enrique Torres from Medellin Planetarium for
 introducing the Campaign in Medellin and provided the initial training
 and data required to understand the process.
+
+It would be impossible to create this package if the following
+previous packages did not exist: astrometry.net, Astrometrica,
+astropy.
 
 Copyleft
 --------

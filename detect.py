@@ -370,7 +370,7 @@ ani=animation.FuncAnimation(fig,updatefig,frames=[0,1,2,3],interval=1000,repeat_
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name '*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
 #4.1-ANNOTATED
@@ -409,5 +409,5 @@ ani=animation.FuncAnimation(fig,updatefig,frames=[0,1,2,3],interval=1000,repeat_
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name '*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
 print("Done.")

@@ -45,7 +45,15 @@ simple steps:
 
 1. Get an image set.  They are normally provided in the form of a zip
    file containing 4 or more images in FITS format.  The package is
-   provided with at least one image set (``data/sets/example.zip
+   provided with at least one image set (``data/sets/example.zip``).
+   Sets must be installed in the ``data/sets/`` directory.
+
+2. Provide a configuration file for the observations.  This file is in
+   the format of [astrometrica](http://www.astrometrica.at).  The
+   package is provided with an example file,
+   ``data/sets/example.cfg``, corresponding to Pan-STARRS telescope.
+
+
 
 Downloading and installating
 ----------------------------

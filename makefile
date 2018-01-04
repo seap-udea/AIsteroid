@@ -3,6 +3,8 @@ BRANCH=$(shell bash .getbranch)
 clean:
 	find . -name "*~" -exec rm {} \;
 	find . -name "#*#" -exec rm {} \;
+	@-rm -r __pycache__
+	@-rm *.pyc
 
 merge:	
 	@echo "Merging branches..."

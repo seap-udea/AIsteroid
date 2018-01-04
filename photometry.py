@@ -40,6 +40,7 @@ nobj=len(np.unique(allsources.loc[indxs].MOBJ.values))
 objects=pd.DataFrame(columns=["IDOBJ","IDIMG",
                               "SNR","FWHM",
                               "FLUX_AUTO","MAG_AUTO",
+                              "X_IMAGE","Y_IMAGE",
                               "X_PSF","Y_PSF",
                               "FLUX_PSF","MAG_PSF",
                               "RA","DEC",
@@ -53,6 +54,7 @@ for mobj in range(1,nobj+1):
              SNR=0,FWHM=0,
              FLUX_AUTO=0,MAG_AUTO=0,
              X_PSF=0,Y_PSF=0,
+             X_IMAGE=0,Y_IMAGE=0,
              FLUX_PSF=0,MAG_PSF=0,
              RA="",DEC="",
              DATE=""))
@@ -86,9 +88,13 @@ for mobj in range(1,nobj+1):
         objp.IDIMG=idimg
         objp.MAG_AUTO=mag
         objp.FLUX_AUTO=flux
-        objp.RA=ras
-        objp.DEC=decs
+        #objp.RA=ras
+        #objp.DEC=decs
+        objp.RA=allsources.loc[ind].RA/15
+        objp.DEC=allsources.loc[ind].DEC
         objp.DATE=datet
+        objp.X_IMAGE=float(obj.X_IMAGE)
+        objp.Y_IMAGE=float(obj.Y_IMAGE)
 
         data=rec2arr(images[iimg]["data"])
         x=int(obj.X_IMAGE)
@@ -189,7 +195,7 @@ for mobj in range(1,nobj+1):
         ps=[]
         for i,x in enumerate(xs):
             for j,y in enumerate(ys):
-                ps+=[P[i,j]]
+                ps+=[P[j,i]]
                 d=np.sqrt((x-xc)**2+(y-yc)**2)
                 ds+=[d]
         dts=np.linspace(min(ds),max(ds),100)
@@ -205,7 +211,7 @@ for mobj in range(1,nobj+1):
         ax.set_xlim((0,max(ds)))
         ax.set_ylim((min(ps),max(ps)))
 
-        ax.axvline(FWHM,color='b',ls='dashed',alpha=0.2)
+        ax.axvline(FWHM/2,color='b',ls='dashed',alpha=0.2)
         ax.axhspan(0,level,color='k',alpha=0.2)
 
         xls=[]
@@ -229,69 +235,8 @@ for mobj in range(1,nobj+1):
 
         #ADD OBJECT
         objects=objects.append(objp,ignore_index=True)
-        break
-    break
+        #break
+    #break
 
-print(objects)
+objects.to_csv(OUT_DIR+"objects-%s.csv"%SET,index=False)
 
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#FILTER OBJECTS ACCORDING TO MPC THRESHOLDS
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-
-#############################################################
-#GENERATE REPORT
-#############################################################
-f=open(OUT_DIR+"report-%s.txt"%SET,"w")
-
-f.write("""COD %s
-OBS N. Primak, A. Schultz, S. Watters, J. Thiel, T. Goggia
-MEA J.Ospina, L. Piedraita, I.Moreno, S.Lopez, J. Zuluaga (NEA, Colombia)
-TEL 1.8-m f/4.4 Ritchey-Chretien + CCD
-ACK MPCReport file updated %s
-NET PPMXL
-
-Image set: %s
-
-"""%(MPCCODE,NOW,SET))
-
-pref="NEA"
-typo="C"
-mago="R"
-lines=""
-for mobj in range(1,nobj+1):
-    cond=allsources.loc[indxs].MOBJ==mobj
-    inds=allsources.loc[indxs].index[cond]
-    for ind in inds:
-        mag=allsources.loc[ind].MAG_AUTO
-        ras=dec2sex(allsources.loc[ind].RA/15)
-        decs=dec2sex(allsources.loc[ind].DEC)
-
-        iimg=int(allsources.loc[ind].IMG)
-        
-        exptime=float(images[iimg]["header"]["EXPTIME"])
-        obstime=images[iimg]["obstime"]
-        parts=obstime.split(".")
-        dt=datetime.strptime(parts[0],"%Y-%m-%dT%H:%M:%S")
-        fday=(dt.hour+dt.minute/60.0+(dt.second+exptime/2+int(parts[1])/1e6)/3600.0)/24.0
-        fday=("%.6f"%fday).replace("0.","")
-        datet=dt.strftime("%Y %m %d.")+fday
-
-        idobj="%s%04d"%(pref,mobj)
-        line="%12s%3s%s%02d %02d %6.3f%03d %02d %5.2f%13.1f%2s%9s\n"%\
-            (idobj,
-             typo,
-             datet,
-             int(ras[0]),int(ras[1]),ras[2],
-             int(decs[0]),int(decs[1]),decs[2],
-             mag,
-             mago,
-             MPCCODE)
-        
-        lines+=line
-
-if nobj==0:
-    f.write("NO MOVING OBJECTS DETECTED\n\n")
-
-f.write(lines)
-f.write("----- end -----\n")
-f.close()

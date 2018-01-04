@@ -4,7 +4,7 @@ This project is aimed at "automatizing" the process of search for
 asteroid in image sets provided by observatories.
 
 Let's suppose that a given observatory has provided you the following
-set of observations (credit: PANSTARRS/IASC):
+set of observations (credit: PANSTARRS/[IASC](http://iasc.hsutx.edu/)):
 
 ![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-raw.gif)
 

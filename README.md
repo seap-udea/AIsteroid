@@ -185,15 +185,20 @@ below:
 
 If all the tests are passed you are ready to use **AIsteroid**.
 
-IPython Scripts
----------------
+IPython Notebook
+----------------
 
-You may prefer to run all the procedures using a graphical controled
-environment.  For that purpose we have provided the iPython notebook
-``AIsteroid.ipynb`` (see a graphical version of the notebook in [this
+You want to run all the procedures using a graphical controled
+environment, we have provided an iPython notebook ``AIsteroid.ipynb``
+(see a graphical version of the notebook in [this
 link](https://github.com/seap-udea/AIsteroid/blob/master/AIsteroid.ipynb))
-that provide the required environment to automatic search for
-asteroids in an image set.
+containing all the required environment to search for asteroids in an
+image set. 
+
+The notebook can be used to control some of the aspects of the process
+that are not available in the unattended version of the detection
+scripts.  You may also use the notebook to inspect by your self, the
+images in search for moving objects.
 
 The notebook could be outdated with respect to the main detection
 pipeline scripts (``astrometry.py``, ``detect.py``, ``photometry.py``,

@@ -171,6 +171,37 @@ below:
       python pip -m install astropy matplotlib 
       ```
 
+5. Unpack large data sets:
+
+   ```
+   make unpack
+   ```
+
+6. Test:
+   
+   ```
+   make test
+   ```
+
+If all the tests are passed you are ready to use **AIsteroid**.
+
 Known problems
 --------------
 
+The package is not entirely perfect.
+
+Acknowledgements
+----------------
+
+The development of this package have been possible thanks to the
+participation in the International Asteroid Search Campaign that
+provided the example image sets required to test the algorithms.
+
+Special thanks to Enrique Torres from Medellin Planetarium for
+introducing the Campaign in Medellin and provided the initial training
+and data required to understand the process.
+
+Copyleft
+--------
+
+Jorge I. Zuluaga [)] 2017

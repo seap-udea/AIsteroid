@@ -92,11 +92,53 @@ at once using:
 make aisteroid
 ```
 
-And voilà!  Your asteroid must be detected!The main output from this
-procedure should be an image like this:
+And voilà!  
+
+Your asteroid must be detected!The main output from this procedure
+should be an image like this:
 
 ![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-detection.gif)
 
+Additionally the package prepare an MPC report
+``data/reports/example-MPCReport.txt`` looking like this:
+
+```
+COD F51
+OBS N. Primak, A. Schultz, S. Watters, J. Thiel, T. Goggia
+MEA J.Ospina, L. Piedraita, I.Moreno, S.Lopez, J. Zuluaga (NEA, Colombia)
+TEL 1.8-m f/4.4 Ritchey-Chretien + CCD
+ACK MPCReport file updated 2018.01.03 20:35:29
+NET PPMXL
+
+Image set: ps1-20170913_1_set142
+
+     NEA0001  C2017 09 13.31597121 03 57.251-15 33 47.80         -9.5 R      F51
+     NEA0001  C2017 09 13.32958521 03 56.806-15 33 45.55         -9.1 R      F51
+     NEA0001  C2017 09 13.34318521 03 56.395-15 33 43.21         -9.0 R      F51
+     NEA0001  C2017 09 13.35677121 03 55.994-15 33 40.71         -8.8 R      F51
+     NEA0002  C2017 09 13.31597121 04 14.300-15 33 49.07        -10.2 R      F51
+     NEA0002  C2017 09 13.32958521 04 13.933-15 33 51.06        -10.1 R      F51
+     NEA0002  C2017 09 13.34318521 04 13.590-15 33 53.18        -10.1 R      F51
+     NEA0002  C2017 09 13.35677121 04 13.275-15 33 55.24        -10.1 R      F51
+     NEA0003  C2017 09 13.31597121 03 57.134-15 31 44.66         -8.6 R      F51
+     NEA0003  C2017 09 13.32958521 03 56.751-15 31 46.68         -8.1 R      F51
+     NEA0003  C2017 09 13.34318521 03 56.416-15 31 49.01         -8.1 R      F51
+     NEA0003  C2017 09 13.35677121 03 56.066-15 31 51.37         -8.0 R      F51
+     NEA0004  C2017 09 13.31597121 04 12.090-15 31 23.98         -9.7 R      F51
+     NEA0004  C2017 09 13.32958521 04 11.596-15 31 25.73         -9.6 R      F51
+     NEA0004  C2017 09 13.34318521 04 11.132-15 31 27.58         -9.6 R      F51
+     NEA0004  C2017 09 13.35677121 04 10.694-15 31 29.46         -9.7 R      F51
+     NEA0005  C2017 09 13.31597121 03 57.118-15 29 59.50        -10.6 R      F51
+     NEA0005  C2017 09 13.32958521 03 56.733-15 30  2.86        -10.5 R      F51
+     NEA0005  C2017 09 13.34318521 03 56.371-15 30  6.46        -10.5 R      F51
+     NEA0005  C2017 09 13.35677121 03 55.992-15 30 10.47        -10.4 R      F51
+----- end -----
+```
+
 Downloading and installating
 ----------------------------
+
+
+Known problems
+--------------
 

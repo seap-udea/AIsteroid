@@ -1,118 +1,130 @@
-"""
-Classical algorithm for extraction and identification of moving objects in an image set
-"""
+#######################################################
+#           _____     _                 _     _       #
+#     /\   |_   _|   | |               (_)   | |      # 
+#    /  \    | |  ___| |_ ___ _ __ ___  _  __| |      #
+#   / /\ \   | | / __| __/ _ \ '__/ _ \| |/ _` |      #
+#  / ____ \ _| |_\__ \ ||  __/ | | (_) | | (_| |      #
+# /_/    \_\_____|___/\__\___|_|  \___/|_|\__,_|      #
+# Artificial Intelligence in the Search for Asteroids #
+# Jorge I. Zuluaga [)] 2017                           #
+# http://bit.ly/aisteroid                             #
+#######################################################
+# Photometry procedure
+#######################################################
 from aisteroid import *
 
-#############################################################
-#BASIC CONFIGURATION
-#############################################################
-SET="ps1-20170913_1_set142"
-OUT_DIR=SCR_DIR+SET+"/"
-AIA=OUT_DIR+"analysis.aia"
-CFG=SET.split("-")[0]+".cfg"
-cfg=[line.rstrip('\n') for line in open(SETS_DIR+CFG)]
-NOW=datetime.now()
-NOW=NOW.strftime("%Y.%m.%d %H:%M:%S")
-MPCCODE=Config(cfg,"MPCCode")
-TEAM="NEA"
+#######################################################
+#LOCAL CONFIGURATION
+#######################################################
+#Output directory
+OUT_DIR=CONF.SCR_DIR+CONF.SET+"/"
 
-#############################################################
-#RECOVER DATA
-#############################################################
-print("Loading pickled analysis results...")
+#File to pickle analysis results
+AIA=OUT_DIR+"analysis.aia"
+
+#Observatory configuration file
+CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
+
+#######################################################
+#LOADING DECTECTION RESULTS
+#######################################################
+if not os.path.isfile(AIA):
+    error("You have not performed the astrometry on this set.")
+
+print("Loading astrometry results...")
 analysis=pickle.load(open(AIA,"rb"))
 images=analysis["images"]
 allsources=analysis["allsources"]
+nimgs=len(images)
+
 try:
     indxs=analysis["indxs"]
+    nobj=len(np.unique(allsources.loc[indxs].MOBJ.values))
+    print("\tNumber of detected objects:",nobj)
 except:
-    print("You must first run detect.py")
+    error("The detection has not been performed.")
 
-nobj=len(np.unique(allsources.loc[indxs].MOBJ.values))
+#######################################################
+#CCD PROPERTIES
+#######################################################
+print("Telescope & CCD Properties:")
+FOCAL=Config(CFG,"FocalLength") #mm
+PW=Config(CFG,"PixelWide") #mm
+PH=Config(CFG,"PixelHigh") #mm
+SIZEX=images[0]["header"]["NAXIS1"]
+SIZEY=images[0]["header"]["NAXIS2"]
+PWD=np.arctan(PW/FOCAL)*RAD
+PHD=np.arctan(PW/FOCAL)*RAD
+PXSIZE=(PWD+PHD)/2
+
+print("\tFocal lenght (mm) :",FOCAL)
+print("\tPixel size (x mm,y mm) :",PW,PH)
+print("\tImage size (x px,y px) :",SIZEX,SIZEY)
+print("\tPixel size (arcsec):",PXSIZE/ARCSEC)
+print("\tCamera field (x deg,y deg) :",SIZEX*PWD,SIZEY*PHD)
 
 #############################################################
 #PERFORM PHOTOMETRY ON DETECTED OBJECTS
 #############################################################
-
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-#PSF FITING
-#%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-objects=pd.DataFrame(columns=["IDOBJ","IDIMG",
-                              "SNR","FWHM",
-                              "FLUX_AUTO","MAG_AUTO",
-                              "X_IMAGE","Y_IMAGE",
-                              "X_PSF","Y_PSF",
-                              "FLUX_PSF","MAG_PSF",
-                              "RA","DEC",
-                              "DATE"])
+print("PSF fitting for objects")
+columns=allsources.columns.tolist()+["IDOBJ","IDIMG",
+                                     "SNR","FWHM",
+                                     "X_PSF","Y_PSF",
+                                     "DATE","GO","REASON"]
+objects=pd.DataFrame(columns=columns)
 for mobj in range(1,nobj+1):
+    #Get sources corresponding to object mobj
     cond=allsources.loc[indxs].MOBJ==mobj
     inds=allsources.loc[indxs].index[cond]
-    idobj="%s%04d"%(TEAM,mobj)
-    n=1
-    objp=pd.Series(dict(IDOBJ="",IDIMG="",
-             SNR=0,FWHM=0,
-             FLUX_AUTO=0,MAG_AUTO=0,
-             X_PSF=0,Y_PSF=0,
-             X_IMAGE=0,Y_IMAGE=0,
-             FLUX_PSF=0,MAG_PSF=0,
-             RA="",DEC="",
-             DATE=""))
 
+    #Create an index for this object
+    idobj="%04d"%(mobj)
+
+    n=1
     for ind in inds:
-        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        #GETTING OBJECT INFORMATION
-        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        obj=allsources.loc[ind]
-        iimg=int(obj.IMG)
-        obstime=images[iimg]["obstime"]
-        props=imageProps(images[iimg],cfg)
-        pxsize=(props[0]+props[1])/2/ARCSEC
-        mag=allsources.loc[ind].MAG_AUTO
-        flux=allsources.loc[ind].FLUX_AUTO
-        ras=dec2sex(allsources.loc[ind].RA/15)
-        decs=dec2sex(allsources.loc[ind].DEC)
+        #Get object information
+        objp=allsources.loc[ind]
+        iimg=int(objp.IMG)
+        image=images[iimg]
+        zero=image["zero"]
+        READOUT=image["header"]["HIERARCH CELL.READNOISE"]
+
         idimg=idobj+"."+str(n)
+        objp["IDIMG"]=idimg
+        objp["IDOBJ"]=idobj
+        objp["MAG_AUTO"]+=zero
+
+        print("\tPSF fitting for image of object OBJ%s"%idimg)
         n+=1
 
         #DATE
-        exptime=float(images[iimg]["header"]["EXPTIME"])
         obstime=images[iimg]["obstime"]
+        exptime=float(images[iimg]["header"]["EXPTIME"])
         parts=obstime.split(".")
         dt=datetime.strptime(parts[0],"%Y-%m-%dT%H:%M:%S")
         fday=(dt.hour+dt.minute/60.0+(dt.second+exptime/2+int(parts[1])/1e6)/3600.0)/24.0
         fday=("%.6f"%fday).replace("0.","")
-        datet=dt.strftime("%Y %m %d.")+fday
+        objp["DATE"]=dt.strftime("%Y %m %d.")+fday
 
-        objp.IDOBJ=idobj
-        objp.IDIMG=idimg
-        objp.MAG_AUTO=mag
-        objp.FLUX_AUTO=flux
-        #objp.RA=ras
-        #objp.DEC=decs
-        objp.RA=allsources.loc[ind].RA/15
-        objp.DEC=allsources.loc[ind].DEC
-        objp.DATE=datet
-        objp.X_IMAGE=float(obj.X_IMAGE)
-        objp.Y_IMAGE=float(obj.Y_IMAGE)
-
+        #GET DATA IMAGE
         data=rec2arr(images[iimg]["data"])
-        x=int(obj.X_IMAGE)
-        y=int(obj.Y_IMAGE)
-
+        x=int(objp.X_IMAGE)
+        y=int(objp.Y_IMAGE)
+        print("\t\tExpected position:",x,y)
+        
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        #DATA TO FIT
+        #2D PSH FIT
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        dx=10
-        dy=10
-        ws=5
+        dx=10 #Error in photometry
+        dy=10 #Error in photometry
+        ws=5  #Number of errors to select for fitting
         xs=np.arange(x-ws*dx,x+ws*dx,1)
         pxs=data[y,x-ws*dx:x+ws*dx,0]
         ys=np.arange(y-ws*dy,y+ws*dy,1)
         pys=data[y-ws*dy:y+ws*dy,x,0]
 
-        sigmax2=10
-        sigmay2=10
+        sigmax2=10 #Estimated error in X
+        sigmay2=10 #Estimated error in y
         meanx=x
         meany=y
         X,Y=np.meshgrid(xs,ys)
@@ -130,11 +142,23 @@ for mobj in range(1,nobj+1):
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         g_init=custom_model(gaussianLevel2)()
         fit=fitting.SLSQPLSQFitter()
-        g=fit(g_init,X,Y,P,verblevel=1)
-        print("Solution:");print(g)
+        g=fit(g_init,X,Y,P,verblevel=0)
+        #print("\t\tResults (level,amplitude,meanx,meany,sigmax,sigmay):\n\t\t\t%s"%str(g.parameters))
+
+        xc=g.meanx.value
+        yc=g.meany.value
+        sigmam=np.sqrt(g.sigmax2.value+g.sigmay2.value)
+        amplitude=g.amplitude.value
+        level=g.level.value
+        objp["FWHM"]=2.355*sigmam
+        objp["X_PSF"]=xc
+        objp["Y_PSF"]=yc
+
+        print("\t\tPSF position:",xc,yc)
+        print("\t\tFWHM:",objp.FWHM)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        #PLOT FIT 2D
+        #COMPUTE SNR
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         title="Object %d, %s, %s"%(ind,idimg,obstime)
 
@@ -147,22 +171,22 @@ for mobj in range(1,nobj+1):
         ys=np.arange(y-ws*dy,y+ws*dy,1)
         X,Y=np.meshgrid(xs,ys)
         P=data[y-ws*dy:y+ws*dy,x-ws*dx:x+ws*dx,0]
-
         Pth=gaussianLevel2(X,Y,
                            level=g.level.value,amplitude=g.amplitude.value,
                            meanx=g.meanx.value,meany=g.meany.value,
                            sigmax2=g.sigmax2.value,sigmay2=g.sigmay2.value)
         D=P-Pth
         noise=D.std()
-        SNR=g.amplitude.value/noise
-        print("SNR(2D) = ",SNR)
-        objp.SNR=SNR
+        objp["SNR"]=g.amplitude.value/noise
+        print("\t\tSNR = ",objp.SNR)
+        print("\t\tMAG = ",objp.MAG_AUTO)
 
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        #PLOT 2D FIT
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         fig = plt.figure()
         ax3d = fig.add_subplot(111, projection='3d')
-
         ax3d.plot_wireframe(X,Y,P,lw=0.5)
-
         ngrid=50
         Xs,Ys=np.meshgrid(np.linspace(xs[0],xs[-1],ngrid),
                           np.linspace(ys[0],ys[-1],ngrid))
@@ -170,73 +194,68 @@ for mobj in range(1,nobj+1):
                           level=g.level.value,amplitude=g.amplitude.value,
                           meanx=g.meanx.value,meany=g.meany.value,
                           sigmax2=g.sigmax2.value,sigmay2=g.sigmay2.value)
-
         ax3d.plot_surface(Xs,Ys,Zs,cmap='hsv',alpha=0.2)
         ax3d.set_title(title,position=(0.5,1.05),fontsize=10)
-
-        fig.savefig(OUT_DIR+"psf2d-obj%3d.png"%ind)
+        fig.savefig(OUT_DIR+"psf2d-%s.png"%idimg)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        #PLOT 1D OF PSF FITTING
+        #1D PLOT OF PSF FITTING
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        xc=g.meanx.value
-        yc=g.meany.value
-        sigmam=np.sqrt(g.sigmax2.value+g.sigmay2.value)
-        amplitude=g.amplitude.value
-        level=g.level.value
-        FWHM=2.355*sigmam
+        xs=np.arange(x-ws*dx,x+ws*dx,1)
+        pxs=data[y,x-ws*dx:x+ws*dx,0]
+        pxts=level+amplitude*np.exp(-0.5*((xs-x)**2/g.sigmax2.value))
+        rxs=pxs-pxts
 
-        objp.FWHM=FWHM
-        objp.X_PSF=xc
-        objp.Y_PSF=yc
+        ys=np.arange(y-ws*dy,y+ws*dy,1)
+        pys=data[y-ws*dy:y+ws*dy,x,0]
+        pyts=level+amplitude*np.exp(-0.5*((ys-y)**2/g.sigmay2.value))
+        rys=pys-pyts
 
-        ds=[]
-        fs=[]
-        ps=[]
-        for i,x in enumerate(xs):
-            for j,y in enumerate(ys):
-                ps+=[P[j,i]]
-                d=np.sqrt((x-xc)**2+(y-yc)**2)
-                ds+=[d]
-        dts=np.linspace(min(ds),max(ds),100)
-        gs=amplitude*np.exp(-0.5*(dts**2/sigmam**2))
-        fs=gs+level
+        xt=np.linspace(xs[0],xs[-1],100)
+        pt=level+amplitude*np.exp(-0.5*((xt-x)**2/g.sigmax2.value))
 
-        fig=plt.figure()
-        ax=fig.gca()
-
-        ax.plot(ds,ps,'ko')
-        ax.plot(dts,fs,'r-')
-
-        ax.set_xlim((0,max(ds)))
-        ax.set_ylim((min(ps),max(ps)))
-
-        ax.axvline(FWHM/2,color='b',ls='dashed',alpha=0.2)
+        fig,axs=plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios':[2,1]})
+        ax=axs[0]
+        ax.plot((xs-x)/np.sqrt(g.sigmax2.value),pxs,'ko')
+        ax.plot((ys-y)/np.sqrt(g.sigmay2.value),pys,'ko')
+        ax.plot((xt-x)/np.sqrt(g.sigmax2.value),pt,'r-')
+        ax.set_xlim((-ws,+ws))
+        ax.set_ylim((min(pxs.min(),pys.min()),max(pxs.max(),pys.max())))
+        ax.axvspan(-objp.FWHM/2/sigmam,+objp.FWHM/2/sigmam,color='b',alpha=0.2)
         ax.axhspan(0,level,color='k',alpha=0.2)
-
-        xls=[]
-        for x in ax.get_xticks():
-            xls+=["%.1f"%(x*pxsize)]
-        ax.set_xticklabels(xls)
-        
-        ax.set_title(title)
+        ax.set_xticks([])
         legend=""
-        legend+="SNR = %.2f\n"%SNR
-        legend+="FWHM (arcsec) = %.2f\n"%(FWHM*pxsize)
-        legend+="MAG = %+.1f\n"%(mag)
-
+        legend+="SNR = %.2f\n"%objp.SNR
+        legend+="FWHM (arcsec) = %.2f\n"%(objp.FWHM*PXSIZE/ARCSEC)
+        legend+="MAG = %+.1f\n"%(objp.MAG_AUTO)
         ax.text(0.95,0.95,legend,
                 ha='right',va='top',transform=ax.transAxes,color='k',fontsize=12)
-
-        ax.set_xlabel("arcsec")
         ax.set_ylabel("Counts")
+        ax.set_title("Object %s"%idimg)
+        waterMark(ax)
 
-        fig.savefig(OUT_DIR+"psf1d-obj%3d.png"%ind)
+        ax=axs[1]
+        ax.plot((xs-x)/np.sqrt(g.sigmax2.value),rxs,'ko')
+        ax.plot((ys-y)/np.sqrt(g.sigmay2.value),rys,'ko')
+        ax.set_ylim((-level,level))
+        ax.axhspan(-noise,noise,color='k',alpha=0.2)
+        ax.set_ylabel("Residual (count)")
+
+        fig.tight_layout()
+        fig.subplots_adjust(hspace=0)
+        fig.savefig(OUT_DIR+"psf1d-%s.png"%idimg)
+
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        #EVALUATE IF OBJECT GO
+        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+        objp["GO"]=1
+        objp["REASON"]="Nice"
 
         #ADD OBJECT
         objects=objects.append(objp,ignore_index=True)
+
         #break
     #break
 
-objects.to_csv(OUT_DIR+"objects-%s.csv"%SET,index=False)
+objects.to_csv(OUT_DIR+"objects-%s.csv"%CONF.SET,index=False)
 

@@ -2,7 +2,10 @@ include makefile.in
 BRANCH=$(shell bash .getbranch)
 
 aisteroid:
+	@-$(PYTHON) astrometry.py
 	@-$(PYTHON) detect.py
+	@-$(PYTHON) photometry.py
+	@-$(PYTHON) report.py
 
 clean:
 	find . -name "*~" -exec rm {} \;

@@ -53,7 +53,14 @@ simple steps:
    package is provided with an example file,
    ``data/sets/example.cfg``, corresponding to Pan-STARRS telescope.
 
+3. Edit the configuration file, ``aisteroid.cfg``:
 
+   ```
+      #Configuration file
+      SET="example"
+      CFG="example"
+      TEAM="NEA"
+   ```
 
 Downloading and installating
 ----------------------------

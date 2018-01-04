@@ -92,6 +92,8 @@ at once using:
 make aisteroid
 ```
 
+And voilà!  Your asteroid must be detected!
+
 Downloading and installating
 ----------------------------
 

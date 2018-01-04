@@ -92,7 +92,10 @@ at once using:
 make aisteroid
 ```
 
-And voilà!  Your asteroid must be detected!
+And voilà!  Your asteroid must be detected!The main output from this
+procedure should be an image like this:
+
+![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-detection.gif)
 
 Downloading and installating
 ----------------------------

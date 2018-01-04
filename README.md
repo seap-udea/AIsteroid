@@ -190,8 +190,10 @@ IPython Scripts
 
 You may prefer to run all the procedures using a graphical controled
 environment.  For that purpose we have provided the iPython notebook
-``AIsteroid.ipynb`` that provide the required environment to automatic
-search for asteroids in an image set.
+``AIsteroid.ipynb`` (see a graphical version of the notebook in [this
+link](https://github.com/seap-udea/AIsteroid/blob/master/AIsteroid.ipynb))
+that provide the required environment to automatic search for
+asteroids in an image set.
 
 The notebook could be outdated with respect to the main detection
 pipeline scripts (``astrometry.py``, ``detect.py``, ``photometry.py``,
@@ -200,7 +202,20 @@ pipeline scripts (``astrometry.py``, ``detect.py``, ``photometry.py``,
 Known problems
 --------------
 
-The package is not entirely perfect.
+The package is not perfect.  This are some of the known problems of
+the package in the present release.
+
+Releases 
+--------
+
+As the package evolves we will report here some of the changes
+performed on their components.  Most of these changes attempt to solve
+the problems mentioned in the "Known problems" section.
+
+- *Release 0.1*: 
+  
+  * Initial release.
+  * This is a non-usable release.
 
 Acknowledgements
 ----------------

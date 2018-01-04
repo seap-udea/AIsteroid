@@ -1,2 +1,12 @@
 # AIsteroid
 Artificial Intelligence in the Search for Asteroids
+
+This project is aimed at "automatizing" the process of search for
+asteroid in an image set provided by an observatory.
+
+Let's suppose that observations have provided you with the following
+set of observations:
+
+![alt text][asteroid]
+[asteroid]: images/asteroid.gif
+

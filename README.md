@@ -1,10 +1,11 @@
 # AIsteroid
 
-This project is aimed at "automatizing" the process of search for
-asteroid in image sets provided by observatories.
+This project is aimed at automatizing the process of searching for
+asteroids in image sets provided by observatories.
 
-Let's suppose that a given observatory has provided you the following
-set of observations (credit: PANSTARRS/[IASC](http://iasc.hsutx.edu/)):
+Let's suppose for instance that you have the following set of
+observations (credit:
+[Pan-STARRS](https://panstarrs.stsci.edu/)/[IASC](http://iasc.hsutx.edu/)):
 
 ![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/master/images/example-raw.gif)
 

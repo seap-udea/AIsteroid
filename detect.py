@@ -26,7 +26,7 @@ AIA=OUT_DIR+"analysis.aia"
 CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
 
 #######################################################
-#LOADING ASTROMETRY RESULTS
+#LOADING DETECTION RESULTS
 #######################################################
 if not os.path.isfile(AIA):
     error("You have not performed the astrometry on this set.")
@@ -236,7 +236,7 @@ ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("convert -delay 100 $(find %s -name 'blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
 out=System("rm -rf blink*")
 print("\tDone.")
 
@@ -294,6 +294,6 @@ ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("convert -delay 100 $(find %s -name 'blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
 out=System("rm -rf blink*")
 print("\tDone.")

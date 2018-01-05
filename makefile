@@ -2,9 +2,10 @@ include makefile.in
 BRANCH=$(shell bash .getbranch)
 
 aisteroid:
-	@-$(PYTHON) astrometry.py
+	@-$(PYTHON) extract.py
 	@-$(PYTHON) detect.py
 	@-$(PYTHON) photometry.py
+	@-$(PYTHON) astrometry.py
 	@-$(PYTHON) report.py
 
 clean:

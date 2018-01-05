@@ -70,7 +70,7 @@ print("PSF fitting for objects")
 columns=allsources.columns.tolist()+["IDOBJ","IDIMG",
                                      "SNR","FWHM",
                                      "X_PSF","Y_PSF",
-                                     "DATE","GO","REASON"]
+                                     "DATE","GO","REASON","RA","DEC","MAG_AUTO"]
 objects=pd.DataFrame(columns=columns)
 for mobj in range(1,nobj+1):
     #Get sources corresponding to object mobj
@@ -92,6 +92,9 @@ for mobj in range(1,nobj+1):
         idimg=idobj+"."+str(n)
         objp["IDIMG"]=idimg
         objp["IDOBJ"]=idobj
+        objp["MAG_AUTO"]=objp["MAG_BEST"]
+        objp["RA"]=objp["ALPHA_J2000"]
+        objp["DEC"]=objp["DELTA_J2000"]
         objp["MAG_AUTO"]+=zero
 
         print("\tPSF fitting for image of object OBJ%s"%idimg)
@@ -184,66 +187,67 @@ for mobj in range(1,nobj+1):
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         #PLOT 2D FIT
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        fig = plt.figure()
-        ax3d = fig.add_subplot(111, projection='3d')
-        ax3d.plot_wireframe(X,Y,P,lw=0.5)
-        ngrid=50
-        Xs,Ys=np.meshgrid(np.linspace(xs[0],xs[-1],ngrid),
-                          np.linspace(ys[0],ys[-1],ngrid))
-        Zs=gaussianLevel2(Xs,Ys,
-                          level=g.level.value,amplitude=g.amplitude.value,
-                          meanx=g.meanx.value,meany=g.meany.value,
-                          sigmax2=g.sigmax2.value,sigmay2=g.sigmay2.value)
-        ax3d.plot_surface(Xs,Ys,Zs,cmap='hsv',alpha=0.2)
-        ax3d.set_title(title,position=(0.5,1.05),fontsize=10)
-        fig.savefig(OUT_DIR+"psf2d-%s.png"%idimg)
+        if CONF.PHOTOPLOT:
+            fig = plt.figure()
+            ax3d = fig.add_subplot(111, projection='3d')
+            ax3d.plot_wireframe(X,Y,P,lw=0.5)
+            ngrid=50
+            Xs,Ys=np.meshgrid(np.linspace(xs[0],xs[-1],ngrid),
+                              np.linspace(ys[0],ys[-1],ngrid))
+            Zs=gaussianLevel2(Xs,Ys,
+                              level=g.level.value,amplitude=g.amplitude.value,
+                              meanx=g.meanx.value,meany=g.meany.value,
+                              sigmax2=g.sigmax2.value,sigmay2=g.sigmay2.value)
+            ax3d.plot_surface(Xs,Ys,Zs,cmap='hsv',alpha=0.2)
+            ax3d.set_title(title,position=(0.5,1.05),fontsize=10)
+            fig.savefig(OUT_DIR+"psf2d-%s.png"%idimg)
 
-        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        #1D PLOT OF PSF FITTING
-        #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-        xs=np.arange(x-ws*dx,x+ws*dx,1)
-        pxs=data[y,x-ws*dx:x+ws*dx,0]
-        pxts=level+amplitude*np.exp(-0.5*((xs-x)**2/g.sigmax2.value))
-        rxs=pxs-pxts
+            #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            #1D PLOT OF PSF FITTING
+            #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
+            xs=np.arange(x-ws*dx,x+ws*dx,1)
+            pxs=data[y,x-ws*dx:x+ws*dx,0]
+            pxts=level+amplitude*np.exp(-0.5*((xs-x)**2/g.sigmax2.value))
+            rxs=pxs-pxts
 
-        ys=np.arange(y-ws*dy,y+ws*dy,1)
-        pys=data[y-ws*dy:y+ws*dy,x,0]
-        pyts=level+amplitude*np.exp(-0.5*((ys-y)**2/g.sigmay2.value))
-        rys=pys-pyts
+            ys=np.arange(y-ws*dy,y+ws*dy,1)
+            pys=data[y-ws*dy:y+ws*dy,x,0]
+            pyts=level+amplitude*np.exp(-0.5*((ys-y)**2/g.sigmay2.value))
+            rys=pys-pyts
 
-        xt=np.linspace(xs[0],xs[-1],100)
-        pt=level+amplitude*np.exp(-0.5*((xt-x)**2/g.sigmax2.value))
+            xt=np.linspace(xs[0],xs[-1],100)
+            pt=level+amplitude*np.exp(-0.5*((xt-x)**2/g.sigmax2.value))
 
-        fig,axs=plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios':[2,1]})
-        ax=axs[0]
-        ax.plot((xs-x)/np.sqrt(g.sigmax2.value),pxs,'ko')
-        ax.plot((ys-y)/np.sqrt(g.sigmay2.value),pys,'ko')
-        ax.plot((xt-x)/np.sqrt(g.sigmax2.value),pt,'r-')
-        ax.set_xlim((-ws,+ws))
-        ax.set_ylim((min(pxs.min(),pys.min()),max(pxs.max(),pys.max())))
-        ax.axvspan(-objp.FWHM/2/sigmam,+objp.FWHM/2/sigmam,color='b',alpha=0.2)
-        ax.axhspan(0,level,color='k',alpha=0.2)
-        ax.set_xticks([])
-        legend=""
-        legend+="SNR = %.2f\n"%objp.SNR
-        legend+="FWHM (arcsec) = %.2f\n"%(objp.FWHM*PXSIZE/ARCSEC)
-        legend+="MAG = %+.1f\n"%(objp.MAG_AUTO)
-        ax.text(0.95,0.95,legend,
-                ha='right',va='top',transform=ax.transAxes,color='k',fontsize=12)
-        ax.set_ylabel("Counts")
-        ax.set_title("Object %s"%idimg)
-        waterMark(ax)
+            fig,axs=plt.subplots(2,1,sharex=True,gridspec_kw={'height_ratios':[2,1]})
+            ax=axs[0]
+            ax.plot((xs-x)/np.sqrt(g.sigmax2.value),pxs,'ko')
+            ax.plot((ys-y)/np.sqrt(g.sigmay2.value),pys,'ko')
+            ax.plot((xt-x)/np.sqrt(g.sigmax2.value),pt,'r-')
+            ax.set_xlim((-ws,+ws))
+            ax.set_ylim((min(pxs.min(),pys.min()),max(pxs.max(),pys.max())))
+            ax.axvspan(-objp.FWHM/2/sigmam,+objp.FWHM/2/sigmam,color='b',alpha=0.2)
+            ax.axhspan(0,level,color='k',alpha=0.2)
+            ax.set_xticks([])
+            legend=""
+            legend+="SNR = %.2f\n"%objp.SNR
+            legend+="FWHM (arcsec) = %.2f\n"%(objp.FWHM*PXSIZE/ARCSEC)
+            legend+="MAG = %+.1f\n"%(objp.MAG_AUTO)
+            ax.text(0.95,0.95,legend,
+                    ha='right',va='top',transform=ax.transAxes,color='k',fontsize=12)
+            ax.set_ylabel("Counts")
+            ax.set_title("Object %s"%idimg)
+            waterMark(ax)
 
-        ax=axs[1]
-        ax.plot((xs-x)/np.sqrt(g.sigmax2.value),rxs,'ko')
-        ax.plot((ys-y)/np.sqrt(g.sigmay2.value),rys,'ko')
-        ax.set_ylim((-level,level))
-        ax.axhspan(-noise,noise,color='k',alpha=0.2)
-        ax.set_ylabel("Residual (count)")
+            ax=axs[1]
+            ax.plot((xs-x)/np.sqrt(g.sigmax2.value),rxs,'ko')
+            ax.plot((ys-y)/np.sqrt(g.sigmay2.value),rys,'ko')
+            ax.set_ylim((-level,level))
+            ax.axhspan(-noise,noise,color='k',alpha=0.2)
+            ax.set_ylabel("Residual (count)")
 
-        fig.tight_layout()
-        fig.subplots_adjust(hspace=0)
-        fig.savefig(OUT_DIR+"psf1d-%s.png"%idimg)
+            fig.tight_layout()
+            fig.subplots_adjust(hspace=0)
+            fig.savefig(OUT_DIR+"psf1d-%s.png"%idimg)
 
         #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
         #EVALUATE IF OBJECT GO

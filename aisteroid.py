@@ -24,6 +24,7 @@ from astropy.coordinates import Angle
 #ASTROALIGN
 import astroalign as aal
 from astroquery.vizier import Vizier
+from skimage.transform import SimilarityTransform
 
 #SYSTEM
 import pickle,os,time,glob,collections,warnings

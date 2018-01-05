@@ -77,7 +77,7 @@ for ind in objects.index:
     idobj="%s%04d"%(CONF.TEAM,objp.IDOBJ)
     print("\tReport for image %s"%idimg)
     
-    mag=objp.MAG_AUTO
+    mag=objp.MAG_BEST
     ras=dec2sex(objp.RA/15)
     decs=dec2sex(objp.DEC)
     line="%12s%3s%s%02d %02d %6.3f%03d %02d %5.2f%13.1f%2s%9s\n"%\

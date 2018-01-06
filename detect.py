@@ -84,7 +84,7 @@ else:
         ds=((x-searchobjs.X_ALIGN)**2+(y-searchobjs.Y_ALIGN)**2).apply(np.sqrt)
 
         #IN HOW MANY IMAGES THE OBJECT IS PRESENT
-        cond=ds<2*RADIUS
+        cond=ds<RADIUS
         inds=searchobjs[cond].index
         nimg=len(allsources.ix[inds])
         allsources.loc[inds,"NIMG"]=nimg
@@ -95,7 +95,22 @@ else:
             iobj+=1
 
     moving=allsources[allsources.NIMG<2]
+    rest=allsources[allsources.NIMG>=2]
     print("\tNumber of potentially moving objects: ",len(moving))
+
+    #Plot
+    fig=plt.figure()
+    ax=fig.gca()
+
+    colors=['r','b','g','y']
+    for i in range(len(images)):
+        ax.plot(moving[moving.IMG==i].X_ALIGN,moving[moving.IMG==i].Y_ALIGN,'rs',ms=3,mfc='None',color=colors[i%4])
+    ax.plot(rest.X_ALIGN,rest.Y_ALIGN,'ko',ms=1,mfc='None')
+    
+    #ax.invert_xaxis()
+    ax.invert_yaxis()
+    fig.tight_layout()
+    fig.savefig(OUT_DIR+"moving.png")
 
     #############################################################
     #3-DETECT MOVING OBJECTS

@@ -29,15 +29,11 @@ CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
 #RUN
 #######################################################
 if os.path.isfile(AIA) and not CONF.OVERWRITE:
+
     print("Loading astrometry results...")
     analysis=pickle.load(open(AIA,"rb"))
     images=analysis["images"]
     allsources=analysis["allsources"]
-    print("Sources properties:")
-    print("\tNumber of sources:",len(allsources))
-    print("\tProperties recovered:",allsources.columns)
-    print("\tSample:")
-    print(allsources.head())
 else:
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     #1-UNPACK THE IMAGE SET
@@ -76,27 +72,6 @@ else:
     print("\tDone.")
 
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #3-ALIGN THE IMAGES
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    print("Aligning images")
-    print("\tReference image:",images[0]["file"])
-    images[0]["qalign"]=1
-    for i,image in enumerate(images[1:]):
-        s=images[0]["data"]
-        t=images[i+1]["data"]
-        image["qalign"]=0
-        print("\tAlign image ",image["file"])
-        try:
-            tr,(s,t)=aal.find_transform(s,t)
-            image["qalign"]=1
-            print("\t\tSuccess")
-        except:
-            tr=SimilarityTransform()
-            image["qalign"]=0
-            print("\t\tFail")
-        image["transform"]=tr.inverse
-
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     #4-EXTRACTING SOURCES
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     print("SEXtracting sources")
@@ -122,33 +97,8 @@ else:
             image["sourcexxy_header"]=hdul[1].header
             image["sourcexxy"]=hdul[1].data
             image["xy"]=rec2arr(hdul[1].data)[:,2:5:2]
-            
-            #Try intrinsic alignment
-            print(image["qalign"])
-            if not image["qalign"]:
-                print("Attempting simple alignment")
-                print(image["xy"])
-                #print(image["sourcexxy_header"].tostring("\n"))
-                exit(0)
-
-            #Transform
-            data=rec2arr(image["sourcexxy"])
-            xy=data[:,2:5:2]
-            if i>0:
-                tr=image["transform"]
-                xya=[]
-                for j in range(xy.shape[0]):xya+=tr(xy[j,:]).tolist()
-                xya=np.array(xya)
-            else:xya=xy
-            image["sourcexxy_aligned"]=xya
-
-            """
-            #WRITING XY FITS FILE FOR ASTROMETRY.NET
-            hdul[1].data["X_IMAGE"]=xya[:,0]
-            hdul[1].data["Y_IMAGE"]=xya[:,1]
-            hdul.writeto(OUT_DIR+"%s.xyls"%image["file"],overwrite=True)
-            """
             hdul.close()
+            print("\t\t%d sources saved."%len(image["sourcexxy"]))
     print("\tDone.")
 
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -158,17 +108,21 @@ else:
     allsources=pd.DataFrame()
     for i,image in enumerate(images):
         srcxys=pd.DataFrame(image["sourcexxy"])
-        srcals=pd.DataFrame(image["sourcexxy_aligned"],columns=["X_ALIGN","Y_ALIGN"])
-        alls=pd.concat([srcxys,srcals],axis=1)
-        alls["IMG"]=i #In which image is the source
-        alls["OBJ"]=0 #To which object it belongs
-        alls["NIMG"]=1 #In how many images is the object present
-        alls["MOBJ"]=0 #To which moving object it belongs
+        alls=pd.concat([srcxys],axis=1)
+        
+        #Alignment attributes
+        alls["IMG"]=i #In which image is this source
+        alls["STAR"]=0 #Is this a star?
+        alls["ALIGSET"]=0 #Alignment set
+
+        #Detection attributes
+        alls["OBJ"]=0 #To which object it belongs (detection procedure)
+        alls["NIMG"]=1 #In how many images is the object present (detection procedure)
+        alls["MOBJ"]=0 #To which moving object it belongs (detection procedure)
         allsources=allsources.append(alls)
+
     allsources.sort_values(by="MAG_BEST",ascending=True,inplace=True)
     allsources.reset_index(inplace=True)
-    print("\tTotal number of sources:",len(allsources))
-    print("\tDone.")
 
     #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
     #5-STORING RESULTS
@@ -178,3 +132,11 @@ else:
     pickle.dump(analysis,open(AIA,"wb"))
     print("\tDone.")
 
+print("Completed.")
+
+if CONF.SUMMARY:
+    print("Summary:")
+    print("\tNumber of sources:",len(allsources))
+    print("\tProperties recovered:",allsources.columns)
+    print("\tSample:")
+    print(allsources.head())

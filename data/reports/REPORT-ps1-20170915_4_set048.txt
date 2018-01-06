@@ -1,0 +1,20 @@
+COD F51
+OBS N. Primak, A. Schultz, S. Watters, J. Thiel, T. Goggia
+MEA J.Ospina, A.Rueda, J.Zapata, L.Tapia, M.Naranjo (ROZ, Colombia)
+TEL 1.8-m f4.4 Ritchey-Chretien + CCD
+ACK MPCReport file updated 2017.10.02 14:03:01
+NET PPMXL
+
+
+REPORT IMAGE SET ps1-20170915_4_set048
+
+
+     ROZ0035  C2017 09 15.45200600 20 03.079+06 31 38.38         21.2 R      F51
+     ROZ0035  C2017 09 15.46409000 20 02.495+06 31 35.29         20.4 R      F51
+     ROZ0035  C2017 09 15.47621400 20 01.904+06 31 32.50         20.8 R      F51
+     ROZ0035  C2017 09 15.48841100 20 01.309+06 31 29.62         20.5 R      F51
+
+----- end -----
+
+
+

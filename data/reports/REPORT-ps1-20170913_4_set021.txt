@@ -1,0 +1,13 @@
+COD F51
+OBS N. Primak, A. Schultz, S. Watters, J. Thiel, T. Goggia
+MEA J.Ospina, A.Rueda, J.Zapata, L.Tapia, M.Naranjo (ROZ, Colombia)
+TEL 1.8-m f/4.4 Ritchey-Chretien + CCD
+ACK MPCReport file updated 2017.09.23 22:21:20
+NET PPMXL
+
+IMAGE SET ps1-20170913_4_set021
+
+
+No moving objects detected
+
+  ----- end -----

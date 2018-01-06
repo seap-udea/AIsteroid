@@ -37,12 +37,11 @@ images=analysis["images"]
 allsources=analysis["allsources"]
 nimgs=len(images)
 
-try:
+if not "indxs" in analysis.keys():
+    error("The detection procedure has not been ran")
+else:
     indxs=analysis["indxs"]
     nobj=len(np.unique(allsources.loc[indxs].MOBJ.values))
-    print("\tNumber of detected objects:",nobj)
-except:
-    error("The detection has not been performed.")
 
 #######################################################
 #CCD PROPERTIES

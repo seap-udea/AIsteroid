@@ -84,7 +84,7 @@ else:
         ds=((x-searchobjs.X_ALIGN)**2+(y-searchobjs.Y_ALIGN)**2).apply(np.sqrt)
 
         #IN HOW MANY IMAGES THE OBJECT IS PRESENT
-        cond=ds<RADIUS
+        cond=ds<2*RADIUS
         inds=searchobjs[cond].index
         nimg=len(allsources.ix[inds])
         allsources.loc[inds,"NIMG"]=nimg

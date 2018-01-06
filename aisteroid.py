@@ -204,25 +204,29 @@ def date2unix(datet):
     unix=time.mktime(ts.timetuple())+(sec-int(sec))
     return unix
     
-def imageProps(image,cfg):
-    """
-        print("Image properties:")
-        print("\tPixel size (micras): %f x %f"%(pxx,pxy))
-        print("\tPixel size (arcsec): %f x %f"%(pxdx/ARCSEC,pxdy/ARCSEC))
-        print("\tCCD Field (deg): %f x %f"%(sizex*pxdx,sizey*pxdy))
-        print("\tAverage pixel size (arcsec):",pxsize/ARCSEC)
-    """
-    #Angular size of each pixel
-    F=Config(cfg,"FocalLength") #Microns
-    pxx=Config(cfg,"PixelWide") #Microns
-    pxdx=np.arctan(pxx/F)*RAD
-    sizex=image["header"]["NAXIS1"]
-    pxy=Config(cfg,"PixelHigh") #Microns
-    sizey=image["header"]["NAXIS2"]
-    pxdy=np.arctan(pxy/F)*RAD
-    pxsize=(pxdx+pxdy)/2
-    return pxdx,pxdy,sizex,sizey
-
+def forceAlignment(sources,si,ti):
+    s=sources[sources.IMG==si][["X_IMAGE","Y_IMAGE"]]
+    t=sources[sources.IMG==ti][["X_IMAGE","Y_IMAGE"]]
+    sa=[];st=[]
+    dm=0
+    for i,inds in enumerate(s.index):
+        objs=s.loc[inds]
+        ds=((t.X_IMAGE-objs.X_IMAGE)**2+(t.Y_IMAGE-objs.Y_IMAGE)**2).\
+            apply(np.sqrt).sort_values()
+        cond=ds<1.5*CONF.RADIUS
+        if cond.sum()>0:
+            dm+=ds[cond].values[0]
+            indt=t[cond].index[0]
+            sa+=[inds]
+            st+=[indt]
+    nalig=len(sa)
+    dm/=nalig
+    sa=s.loc[sa].values
+    ta=t.loc[st].values
+    tr=SimilarityTransform()
+    status=tr.estimate(sa,ta)
+    return tr,status
+    
 def waterMark(ax):
     ax.text(0.99,0.99,"http://bit.ly/aisteroid",
             fontsize=8,color='b',

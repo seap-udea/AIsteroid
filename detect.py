@@ -98,7 +98,7 @@ else:
     rest=allsources[allsources.NIMG>=2]
     print("\tNumber of potentially moving objects: ",len(moving))
 
-    #Plot
+    #Plot Moving candidates
     fig=plt.figure()
     ax=fig.gca()
 
@@ -107,7 +107,6 @@ else:
         ax.plot(moving[moving.IMG==i].X_ALIGN,moving[moving.IMG==i].Y_ALIGN,'rs',ms=3,mfc='None',color=colors[i%4])
     ax.plot(rest.X_ALIGN,rest.Y_ALIGN,'ko',ms=1,mfc='None')
     
-    #ax.invert_xaxis()
     ax.invert_yaxis()
     fig.tight_layout()
     fig.savefig(OUT_DIR+"moving.png")

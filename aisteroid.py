@@ -205,28 +205,51 @@ def date2unix(datet):
     return unix
     
 def forceAlignment(sources,si,ti):
-    s=sources[sources.IMG==si][["X_IMAGE","Y_IMAGE"]]
-    t=sources[sources.IMG==ti][["X_IMAGE","Y_IMAGE"]]
-    sa=[];st=[]
-    dm=0
-    for i,inds in enumerate(s.index):
-        objs=s.loc[inds]
-        ds=((t.X_IMAGE-objs.X_IMAGE)**2+(t.Y_IMAGE-objs.Y_IMAGE)**2).\
-            apply(np.sqrt).sort_values()
-        cond=ds<1.5*CONF.RADIUS
-        if cond.sum()>0:
-            dm+=ds[cond].values[0]
-            indt=t[cond].index[0]
-            sa+=[inds]
-            st+=[indt]
-    nalig=len(sa)
-    dm/=nalig
-    sa=s.loc[sa].values
-    ta=t.loc[st].values
+    
+    #Select bright sources
+    s=sources[sources.IMG==si][sources.MAG_BEST<-10][["X_IMAGE","Y_IMAGE"]]
+    t=sources[sources.IMG==ti][sources.MAG_BEST<-10][["X_IMAGE","Y_IMAGE"]]
+    
+    #Match sources
+    sa,ta=matchSources(s,t)
+
     tr=SimilarityTransform()
     status=tr.estimate(sa,ta)
-    return tr,status
+    return tr,(sa,ta)
+
+def matchSources(si,ti,radius=5*CONF.RADIUS):
     
+    #Remove close sources
+    sc=pd.DataFrame.copy(si)
+    indr=[]
+    for ind in sc.index:
+        objs=sc.loc[ind]
+        ds=((sc.X_IMAGE-objs.X_IMAGE)**2+(sc.Y_IMAGE-objs.Y_IMAGE)**2).\
+            apply(np.sqrt).sort_values()
+        cond=(ds<10*radius)&(ds>0)
+        if cond.sum()>0:
+            indr+=[sc[cond].index[0]]
+    sc=sc.drop(indr)
+
+    #Find matches
+    sa=[];st=[];
+    for i,inds in enumerate(sc.index):
+        objs=sc.loc[inds]
+        ds=((ti.X_IMAGE-objs.X_IMAGE)**2+(ti.Y_IMAGE-objs.Y_IMAGE)**2).\
+            apply(np.sqrt).sort_values()
+        cond=ds<radius
+        if cond.sum()>0:
+            indt=ti[cond].index[0]
+            sa+=[inds]
+            st+=[indt]
+    sa=sc.loc[sa].values
+    ta=ti.loc[st].values
+
+    return sa,ta
+
+def transAlignment(sources,si,ti):
+    pass
+
 def waterMark(ax):
     ax.text(0.99,0.99,"http://bit.ly/aisteroid",
             fontsize=8,color='b',

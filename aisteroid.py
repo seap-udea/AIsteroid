@@ -20,6 +20,7 @@ from astropy.io import fits
 from astropy.modeling import models, fitting
 from astropy.modeling.models import custom_model
 from astropy.coordinates import Angle
+from scipy.optimize import minimize
 
 #ASTROALIGN
 import astroalign as aal
@@ -27,25 +28,34 @@ from astroquery.vizier import Vizier
 from skimage.transform import SimilarityTransform
 
 #SYSTEM
-import pickle,os,time,glob,collections,warnings
+import pickle,os,time,glob,collections,warnings,pprint
 from datetime import datetime
-from sys import argv,stdout,stderr
+from sys import argv,stdout,stderr,exit
 import numpy as np
 from collections import OrderedDict
 import pandas as pd
 from os import system
 
-#GRAPHICAL
-from matplotlib import use
-use('Agg')
-import matplotlib.pyplot as plt
-import matplotlib.animation as animation
-from mpl_toolkits.mplot3d import Axes3D
+#IPython
+from IPython.display import HTML, Image
+import IPython.core.autocall as autocall
 
 #############################################################
 #CORE ROUTINES
 #############################################################
-def error(msg,code=1,stream=stderr):
+class ExitClass(autocall.IPyAutocall):
+    """ Supposingly an autcall class """
+    def __call__(self):
+        exit()
+
+def in_ipynb():
+    try:
+        cfg = get_ipython().config 
+        return True
+    except NameError:
+        return False
+
+def error(msg,code=2,stream=stderr):
     print(msg,file=stderr)
     exit(code)
 
@@ -68,7 +78,7 @@ def loadConf(filename):
 
 def loadArgv(default):
     d=default
-    conf=dictObj()
+    if QIPY:return dictObj(d)
     try:
         config=";".join(argv[1:]).replace("--","")
         exec(config,{},d)
@@ -76,6 +86,32 @@ def loadArgv(default):
     except:
         error("Badformed options:",argv[1:])
     return conf
+
+QIPY=False
+if in_ipynb():
+    QIPY=True
+
+#GRAPHICAL
+if not QIPY:
+    from matplotlib import use
+    use('Agg')
+import matplotlib.pyplot as plt
+import matplotlib.animation as animation
+from mpl_toolkits.mplot3d import Axes3D
+
+
+
+"""
+QIPY=False
+if in_ipynb():
+    QIPY=True
+    Exit=lambda x:exit(x,keep_kernel=True)
+else:
+    Exit=exit
+"""
+
+#Pretty printer
+PP=pprint.PrettyPrinter(indent=2).pprint
 
 #############################################################
 #COMMON ACTIONS
@@ -102,6 +138,10 @@ CONF.REP_DIR=CONF.DATA_DIR+"reports/"
 CONF.IMAGE_DIR="images/"
 CONF.SCR_DIR="scratch/"
 CONF.INPUT_DIR="input/"
+
+if QIPY:
+    print("Configuration:")
+    PP(CONF.__dict__)
 
 #############################################################
 #CONSTANTS
@@ -130,7 +170,7 @@ MICRA=1e-6
 sex2dec=lambda s:np.sign(float(s.split()[0]))*(np.array([np.abs(float(x)) for x in s.split()]).dot([1.0,1/60.0,1/3600.]).sum())
 
 #Convert a matrix of axes into a list
-mat2lst=lambda M:M.reshape(1,sum(M.shape))[0].tolist()
+mat2lst=lambda M:M.reshape(1,M.shape[0]*M.shape[1])[0].tolist()
 
 #############################################################
 #ROUTINES
@@ -217,16 +257,18 @@ def forceAlignment(sources,si,ti):
     status=tr.estimate(sa,ta)
     return tr,(sa,ta)
 
-def matchSources(si,ti,radius=5*CONF.RADIUS):
+def matchSources(si,ti,
+                 risol=100,radius=10,
+                 x="X_IMAGE",y="Y_IMAGE"):
     
     #Remove close sources
     sc=pd.DataFrame.copy(si)
     indr=[]
     for ind in sc.index:
         objs=sc.loc[ind]
-        ds=((sc.X_IMAGE-objs.X_IMAGE)**2+(sc.Y_IMAGE-objs.Y_IMAGE)**2).\
+        ds=((sc[x]-objs[x])**2+(sc[y]-objs[y])**2).\
             apply(np.sqrt).sort_values()
-        cond=(ds<10*radius)&(ds>0)
+        cond=(ds<risol)&(ds>0)
         if cond.sum()>0:
             indr+=[sc[cond].index[0]]
     sc=sc.drop(indr)
@@ -235,25 +277,69 @@ def matchSources(si,ti,radius=5*CONF.RADIUS):
     sa=[];st=[];
     for i,inds in enumerate(sc.index):
         objs=sc.loc[inds]
-        ds=((ti.X_IMAGE-objs.X_IMAGE)**2+(ti.Y_IMAGE-objs.Y_IMAGE)**2).\
+        ds=((ti[x]-objs[x])**2+(ti[y]-objs[y])**2).\
             apply(np.sqrt).sort_values()
         cond=ds<radius
         if cond.sum()>0:
             indt=ti[cond].index[0]
             sa+=[inds]
             st+=[indt]
-    sa=sc.loc[sa].values
-    ta=ti.loc[st].values
+    sa=sc.loc[sa][[x,y]].values
+    ta=ti.loc[st][[x,y]].values
 
     return sa,ta
 
-def transAlignment(sources,si,ti):
-    pass
+def isolateSources(sources,radius=10):
+    sc=pd.DataFrame.copy(sources)
+    indr=[]
+    inda=pd.Series(sc.index.values,index=sc.index)
+    i=0
+    while i<len(inda):
+        ind=inda.iat[i]
+        objs=sc.loc[ind]
+        ds=((sc.X_IMAGE-objs.X_IMAGE)**2+(sc.Y_IMAGE-objs.Y_IMAGE)**2).\
+            apply(np.sqrt).sort_values()
+        cond=(ds<radius)&(ds>0)
+        if cond.sum()>0:
+            indr=sc[cond].index
+            sc.drop(indr,inplace=True)
+            inda.drop(indr,inplace=True)
+        i+=1
+    return sc
 
 def waterMark(ax):
     ax.text(0.99,0.99,"http://bit.ly/aisteroid",
             fontsize=8,color='b',
             ha='right',va='top',rotation=90,transform=ax.transAxes)
+
+def distanceSets(x,set1,set2,ix,iy):
+    """
+    Calculate the distance between two sets of objects stored in
+    pandas dataframes (set1,set2) with coordinates named "ix" and
+    "iy". The size of the sets could be different.
+
+    The routine compute the minimum distance from each objects in set1
+    to all objects of set2.  The total distance is the sum of all
+    computed distances.
+    """
+    dx=x[0]*np.cos(x[1])
+    dy=x[0]*np.sin(x[1])
+    ds=np.array([((set1.loc[ind,ix]+dx-set2.loc[:,ix])**2+\
+                  (set1.loc[ind,iy]+dy-set2.loc[:,iy])**2).apply(np.sqrt).sort_values().iat[0] for ind in set1.index[:]])
+    return ds.sum()
+
+def matchSets(set1,set2,ix,iy):
+    """
+    Find the index of objects in set2 which are closest to objects in set1
+    """
+    im=np.array([((set1.loc[ind,ix]-set2.loc[:,ix])**2+\
+                  (set1.loc[ind,iy]-set2.loc[:,iy])**2).apply(np.sqrt).idxmin() for ind in set1.index[:]])
+    return im
+
+def translation2D(tr,r):
+    dx=tr[0]*np.cos(tr[1])
+    dy=tr[0]*np.sin(tr[1])
+    return [r[0]+dx,r[1]+dy]
 
 if __name__=="__main__":
     print("AIsteroid is ready to be ran")

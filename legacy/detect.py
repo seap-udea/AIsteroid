@@ -1,221 +1,76 @@
-"""
-Classical algorithm for extraction and identification of moving objects in an image set
-"""
+#######################################################
+#           _____     _                 _     _       #
+#     /\   |_   _|   | |               (_)   | |      # 
+#    /  \    | |  ___| |_ ___ _ __ ___  _  __| |      #
+#   / /\ \   | | / __| __/ _ \ '__/ _ \| |/ _` |      #
+#  / ____ \ _| |_\__ \ ||  __/ | | (_) | | (_| |      #
+# /_/    \_\_____|___/\__\___|_|  \___/|_|\__,_|      #
+# Artificial Intelligence in the Search for Asteroids #
+# Jorge I. Zuluaga [)] 2017                           #
+# http://bit.ly/aisteroid                             #
+#######################################################
+# Detection procedure
+#######################################################
 from aisteroid import *
 
-#############################################################
-#BASIC CONFIGURATION
-#############################################################
-#SET="ps1-20170914_4_set096"
-#SET="ps1-20170914_11_set176"
-SET="ps1-20170913_1_set142"
+#######################################################
+#LOCAL CONFIGURATION
+#######################################################
+#Output directory
+OUT_DIR=CONF.SCR_DIR+CONF.SET+"/"
 
-OUT_DIR=SCR_DIR+SET+"/"
+#File to pickle analysis results
 AIA=OUT_DIR+"analysis.aia"
-CFG=SET.split("-")[0]+".cfg"
-cfg=[line.rstrip('\n') for line in open(SETS_DIR+CFG)]
-MPCCODE=Config(cfg,"MPCCode")
-TEAM="NEA"
 
-RADIUS=3
+#Observatory configuration file
+CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
 
-#############################################################
-#1-EXTRACT SOURCES
-#############################################################
-if os.path.isfile(AIA):# and 0:
-    print("Loading pickled analysis results...")
-    analysis=pickle.load(open(AIA,"rb"))
-    images=analysis["images"]
-    allsources=analysis["allsources"]
-else:
-    print("Analysing images...")
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.1-UNPACK THE IMAGE SET
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    out=System("rm -rf "+OUT_DIR)
-    out=System("mkdir -p "+OUT_DIR)
-    out=System("cp "+INPUT_DIR+"template/* "+OUT_DIR)
-    out=System("unzip -j -o -d "+OUT_DIR+" "+SETS_DIR+SET+".zip")
+#######################################################
+#LOADING DETECTION RESULTS
+#######################################################
+if not os.path.isfile(AIA):
+    error("You have not performed the astrometry on this set.")
 
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.2-READ THE IMAGES
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    images=[]
-    print("Reading images")
-    for image in sorted(glob.glob(OUT_DIR+"*.fits")):
-        print("\tReading image "+image)
-        hdul=fits.open(image)
-        im=dict()
-        im["file"]=image.split("/")[-1].replace(".fits","")
-        im["header"]=hdul[0].header
-        im["data"]=hdul[0].data
-        im["obstime"]=hdul[0].header["DATE-OBS"]
-        im["unixtime"]=date2unix(im["obstime"])
-        im["transform"]=None
-        images+=[im]
-        hdul.close()
-        f=open(OUT_DIR+"%s.head"%im["file"],"w")
-        f.write(im["header"].tostring("\n"))
-        f.close()
+print("Loading astrometry results...")
+analysis=pickle.load(open(AIA,"rb"))
+images=analysis["images"]
+allsources=analysis["allsources"]
+nimgs=len(images)
 
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.3-ALIGN THE IMAGES
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    print("Aligning images")
-    print("\tReference image:",images[0]["file"])
-    for i,image in enumerate(images[1:]):
-        print("\tAlign image ",image["file"])
-        tr,(s,t)=aal.find_transform(images[0]["data"],images[i+1]["data"])
-        image["transform"]=tr.inverse
+#######################################################
+#CCD PROPERTIES
+#######################################################
+print("Telescope & CCD Properties:")
+FOCAL=Config(CFG,"FocalLength") #mm
+PW=Config(CFG,"PixelWide") #mm
+PH=Config(CFG,"PixelHigh") #mm
+SIZEX=images[0]["header"]["NAXIS1"]
+SIZEY=images[0]["header"]["NAXIS2"]
+PWD=np.arctan(PW/FOCAL)*RAD
+PHD=np.arctan(PW/FOCAL)*RAD
+PXSIZE=(PWD+PHD)/2
+print("\tFocal lenght (mm) :",FOCAL)
+print("\tPixel size (x mm,y mm) :",PW,PH)
+print("\tImage size (x px,y px) :",SIZEX,SIZEY)
+print("\tPixel size (arcsec):",PXSIZE/ARCSEC)
+print("\tCamera field (x deg,y deg) :",SIZEX*PWD,SIZEY*PHD)
 
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.4-SEXTRACT SOURCES
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    """
-    print("SEXtracting sources")
-    for i,image in enumerate(images):
-        file=image["file"]
-        header=image["header"]
-        #SEX COMMAND
-        print("\tRunning SEXtractor over %s..."%file)
-        opts=""
-        opts+=" "+"-c asteroid.sex"
-        cmd=SEX_DIR+"bin/sex "+opts+" "+file+".fits"
-        sys="cd "+OUT_DIR+";"+cmd
-        out=System(sys)
-        if out[-1][0]!=0:
-            print("\t\tError processing image")
-            print(out[-1][1])
-        else:
-            print("\t\tExtraction successful")
-            #STORE RESULTS
-            image["sex_output"]=out[-1][1]
-            System("cd "+OUT_DIR+";cp asteroid.cat %s.cat"%file,False)
-            hdul=fits.open(OUT_DIR+"%s.cat"%file)
-            image["catalogue_header"]=hdul[1].header
-            image["catalogue"]=hdul[1].data
-            #Transform
-            data=rec2arr(image["catalogue"])
-            xy=data[:,2:5:2]
-            if i>0:
-                tr=image["transform"]
-                xya=[]
-                for j in range(xy.shape[0]):xya+=tr(xy[j,:]).tolist()
-                xya=np.array(xya)
-            else:xya=xy
-            image["catalogue_aligned"]=xya
-            #WRITING XY FITS FILE FOR ASTROMETRY.NET
-            hdul[1].data["X_IMAGE"]=xya[:,0]
-            hdul[1].data["Y_IMAGE"]=xya[:,1]
-            hdul.writeto(OUT_DIR+"%s.xyls"%image["file"],overwrite=True)
-            hdul.close()
-    print("Done.")
-    """
-
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.5-PERFORMING ASTROMETRY
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    print("Astrometry analysis...")
-    for i,image in enumerate(images):
-        file=image["file"]
-        header=image["header"]
-
-        #GET COORDINATES
-        ra=sex2dec(header["OBJCTRA"])*15
-        dec=sex2dec(header["OBJCTDEC"])
-
-        #ASTROMETRY.NET COMMAND
-        print("\tRunning astrometry over %s..."%file)
-        opts=""
-        opts+=" "+"--use-sextractor --sextractor-path "+SEX_DIR+"bin/sex"
-        opts+=" "+"--no-plots"
-        opts+=" "+"--ra %.7f --dec %.7f --radius 1"%(ra,dec)
-        opts+=" "+"--guess-scale --overwrite"
-        cmd=AST_DIR+"bin/solve-field "+opts+" "+file+".fits"
-        sys="cd "+OUT_DIR+";"+cmd
-        out=System(sys,False)
-        if out[-1][0]!=0:
-            print("\t\tError processing image")
-            print(out[-1][1])
-        else:
-            print("\t\tAstrometry processing successful")
-            #STORE RESULTS
-            image["astro_output"]="\n".join(out[:-1])
-
-            #SOURCE XY AND MAG
-            hdul=fits.open(OUT_DIR+"%s.axy"%file)
-            image["objects_header"]=hdul[1].header
-            image["objects"]=hdul[1].data
-            hdul.close()
-
-            #TRANSFORM
-            data=rec2arr(image["objects"])
-            xy=data[:,:2]
-            if i>0:
-                tr=image["transform"]
-                xya=[]
-                for j in range(xy.shape[0]):xya+=tr(xy[j,:]).tolist()
-                xya=np.array(xya)
-            else:xya=xy
-            image["objects_aligned"]=xya
-
-            #SOURCES RA,DEC
-            cmd=AST_DIR+"bin/wcs-xy2rd -X 'X_IMAGE' -Y 'Y_IMAGE' -w %s.wcs -i %s.axy -o %s.ard"%(file,file,file)
-            sys="cd "+OUT_DIR+";"+cmd
-            out=System(sys,False)
-
-            hdul=fits.open(OUT_DIR+"%s.ard"%file)
-            image["objectsrd_header"]=hdul[1].header
-            image["objectsrd"]=hdul[1].data
-            hdul.close()
-
-            #STARS X,Y
-            hdul=fits.open(OUT_DIR+"%s-indx.xyls"%file)
-            image["stars_header"]=hdul[1].header
-            image["stars"]=hdul[1].data
-            hdul.close()
-
-            #STARS RA,DEC
-            hdul=fits.open(OUT_DIR+"%s.rdls"%file)
-            image["starsrd_header"]=hdul[1].header
-            image["stars"]=hdul[1].data
-            hdul.close()
-
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.5-COMPILING ALL SOURCES
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    print("Compiling all sources...")
-    allsources=pd.DataFrame()
-    for i,image in enumerate(images):
-        objs=pd.DataFrame(image["objects"])
-        alig=pd.DataFrame(image["objects_aligned"],columns=["X_ALIGN","Y_ALIGN"])
-        ords=pd.DataFrame(image["objectsrd"])
-        alls=pd.concat([objs,alig,ords],axis=1)
-        alls["IMG"]=i #In which image is the source
-        alls["OBJ"]=0 #To which object it belongs
-        alls["NIMG"]=1 #In how many images is the object present
-        alls["MOBJ"]=0 #To which moving object it belongs
-        allsources=allsources.append(alls)
-    allsources.sort_values(by="MAG_AUTO",inplace=True)
-    allsources.reset_index(inplace=True)
-    print("\tTotal number of sources:",len(allsources))
-
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    #1.6-STORING RESULTS
-    #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-    print("Pickling image analysis...")
-    analysis=dict(images=images,allsources=allsources)
-    pickle.dump(analysis,open(AIA,"wb"))
-
-if "indxs" in analysis.keys():
+#######################################################
+#DETECTING
+#######################################################
+if "indxs" in analysis.keys() and not CONF.OVERWRITE:
+    print("Loading detection results...")
     indxs=analysis["indxs"]
     nobj=len(np.unique(allsources.loc[indxs].MOBJ.values))
+    print("\tObjects load: ",nobj)
+    print("\tObjects index: ",indxs)
 else:
     #############################################################
-    #2-FIND POTENTIAL MOVING OBJECTS
+    #1-FIND POTENTIAL MOVING OBJECTS
     #############################################################
     print("Find potential moving objects...")
-    print("\tSearch RADIUS (pixels):",RADIUS)
+    print("\tSearching RADIUS (pixels, arcsec):",CONF.RADIUS,CONF.RADIUS*PXSIZE/ARCSEC)
+    RADIUS=CONF.RADIUS
 
     iobj=1
     for i,ind in enumerate(allsources.index):
@@ -240,7 +95,21 @@ else:
             iobj+=1
 
     moving=allsources[allsources.NIMG<2]
+    rest=allsources[allsources.NIMG>=2]
     print("\tNumber of potentially moving objects: ",len(moving))
+
+    #Plot Moving candidates
+    fig=plt.figure()
+    ax=fig.gca()
+
+    colors=['r','b','g','y']
+    for i in range(len(images)):
+        ax.plot(moving[moving.IMG==i].X_ALIGN,moving[moving.IMG==i].Y_ALIGN,'rs',ms=3,mfc='None',color=colors[i%4])
+    ax.plot(rest.X_ALIGN,rest.Y_ALIGN,'ko',ms=1,mfc='None')
+    
+    ax.invert_yaxis()
+    fig.tight_layout()
+    fig.savefig(OUT_DIR+"moving.png")
 
     #############################################################
     #3-DETECT MOVING OBJECTS
@@ -335,56 +204,80 @@ else:
     print("Pickling moving analysis...")
     analysis["indxs"]=indxs
     pickle.dump(analysis,open(AIA,"wb"))
-
+    
 #############################################################
-#4-CREATE ANIMATION WITH ANNOTATION
+#CREATING ANIMATIONS
 #############################################################
-print("Creating animation for '%s'..."%SET)
+print("Creating animation for '%s'..."%CONF.SET)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-#4.1-NO ANNOTATED
+#NOT ANNOTATED
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-animfile="%s/%s.gif"%(OUT_DIR,SET)
-print("\tNo annotated ('%s')"%animfile)
+animfile="%s/%s.gif"%(OUT_DIR,CONF.SET)
+print("\tNot annotated ('%s')"%animfile)
 
+#Figure
 fig=plt.figure(figsize=(8,8))
+
+#Show first image
 imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
 im=plt.imshow(images[0]["data"],animated=True,**imgargs)
-tm=plt.title("Set %s, Image 0: "%SET+images[0]["obstime"],fontsize=10)
+
+#Title
+tm=plt.title("Set %s, Image 0: "%CONF.SET+images[0]["obstime"],fontsize=10)
+
+#Water mark
 waterMark(fig.gca())
 
+#Basic decoration
 plt.axis("off")
 fig.tight_layout()
 
+#Update figure
 def updatefig(i):
-    iimg=i%4
+    #Select image
+    iimg=i%nimgs
     im.set_array(images[iimg]["data"])
-    tm.set_text("Set %s, Image %d: "%(SET,iimg)+images[i%4]["obstime"])
+    tm.set_text("Set %s, Image %d: "%(CONF.SET,iimg)+images[iimg]["obstime"])
     return im,
 
-ani=animation.FuncAnimation(fig,updatefig,frames=[0,1,2,3],interval=1000,repeat_delay=1000,repeat=True,blit=True)
+#Create animation
+ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
+                            interval=1000,repeat_delay=1000,
+                            repeat=True,blit=True)
 
+#Save animation
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("convert -delay 100 $(find %s -name 'blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("rm -rf blink*")
+print("\tDone.")
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-#4.1-ANNOTATED
+#ANNOTATED
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
-animfile="%s/detection-%s.gif"%(OUT_DIR,SET)
+animfile="%s/detection-%s.gif"%(OUT_DIR,CONF.SET)
 print("\tAnnotated ('%s')"%animfile)
 
+#Figure
 fig=plt.figure(figsize=(8,8))
+
+#Show first image
 imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
 im=plt.imshow(images[0]["data"],animated=True,**imgargs)
-tm=plt.title("Set %s, Image 0: "%SET+images[0]["obstime"],fontsize=10)
+
+#Title
+tm=plt.title("Set %s, Image 0: "%CONF.SET+images[0]["obstime"],fontsize=10)
+
+#Water mark
 waterMark(fig.gca())
 
+#Show detected objects
 for mobj in range(1,nobj+1):
     cond=allsources.loc[indxs].MOBJ==mobj
     inds=allsources.loc[indxs].index[cond]
-    idobj="%s%04d"%(TEAM,mobj)
+    idobj="%s%04d"%("OBJ",mobj)
     n=1
     for ind in inds:
         obj=allsources.loc[ind]
@@ -393,19 +286,28 @@ for mobj in range(1,nobj+1):
             plt.text(obj.X_IMAGE+5,obj.Y_IMAGE+5,"%s"%idobj,color='r',fontsize=6)
         n+=1
 
+#Basic decoration
 plt.axis("off")
 fig.tight_layout()
 
+#Update figure
 def updatefig(i):
-    iimg=i%4
+    #Select image
+    iimg=i%nimgs
     im.set_array(images[iimg]["data"])
-    tm.set_text("Set %s, Image %d: "%(SET,iimg)+images[i%4]["obstime"])
+    tm.set_text("Set %s, Image %d: "%(CONF.SET,iimg)+images[iimg]["obstime"])
     return im,
 
-ani=animation.FuncAnimation(fig,updatefig,frames=[0,1,2,3],interval=1000,repeat_delay=1000,repeat=True,blit=True)
 
+#Create animation
+ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
+                            interval=1000,repeat_delay=1000,
+                            repeat=True,blit=True)
+
+#Save animattion
 out=System("rm -rf %s/blink*"%OUT_DIR)
 ani.save(OUT_DIR+'blink.html')
 time.sleep(1)
-out=System("convert -delay 100 $(find %s -name 'blink*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
-print("Done.")
+out=System("convert -delay 100 $(find %s -name 'blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(OUT_DIR,animfile))
+out=System("rm -rf blink*")
+print("\tDone.")

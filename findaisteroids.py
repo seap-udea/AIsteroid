@@ -25,7 +25,7 @@ TELESCOPE=Config(CFG,"Telescope")[0]
 ISTEP=1
 
 VPRINT0("*"*60)
-VPRINT0("Asteroid detection in set %s"%CONF.SET)
+VPRINT0("Asteroid detection in set '%s'"%CONF.SET)
 VPRINT0("*"*60)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%% 
@@ -536,6 +536,9 @@ ax.plot(rest["X_IMAGE"]-1,rest["Y_IMAGE"],'o',color=gray(0.7),ms=5,alpha=1)
 ax.plot(moving["X_IMAGE"]-1,moving["Y_IMAGE"],'bo',ms=10,mfc='None',alpha=0.2)
 ax.plot(moving["X_IMAGE"]-1,moving["Y_IMAGE"],'b+',ms=5,mfc='None',alpha=0.2)
 
+for ind in moving.index:
+    ax.text(moving.loc[ind,"X_IMAGE"],moving.loc[ind,"Y_IMAGE"],"%d"%ind,fontsize=6)
+
 fig.tight_layout()
 fig.savefig(OUT_DIR+"moving.png")
 VPRINT0("\tDone.")
@@ -716,7 +719,7 @@ for i in range(nimgs):
                         continue
 
                     VPRINT1("\t\t\t\tMag variance = %.2f"%(magvar))
-                    if magvar>0.2:
+                    if magvar>CONF.MAGVAR:
                         VPRINT1("\t\t\t\t***Object rejected by magnitude variance***")
                         continue
                              

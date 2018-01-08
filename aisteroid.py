@@ -78,7 +78,8 @@ def loadConf(filename):
 
 def loadArgv(default):
     d=default
-    if QIPY:return dictObj(d)
+    if QIPY or len(argv)==1:return dictObj(d)
+    conf=dictObj()
     try:
         config=";".join(argv[1:]).replace("--","")
         exec(config,{},d)
@@ -171,6 +172,15 @@ sex2dec=lambda s:np.sign(float(s.split()[0]))*(np.array([np.abs(float(x)) for x 
 
 #Convert a matrix of axes into a list
 mat2lst=lambda M:M.reshape(1,M.shape[0]*M.shape[1])[0].tolist()
+
+def VPRINT0(*args):
+    if CONF.VERBOSE==0:print(*args)
+def VPRINT1(*args):
+    if CONF.VERBOSE>=1:print(*args)
+def VPRINT2(*args):
+    if CONF.VERBOSE>=2:print(*args)
+def VPRINT3(*args):
+    if CONF.VERBOSE>=3:print(*args)
 
 #############################################################
 #ROUTINES

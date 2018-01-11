@@ -174,7 +174,7 @@ sex2dec=lambda s:np.sign(float(s.split()[0]))*(np.array([np.abs(float(x)) for x 
 mat2lst=lambda M:M.reshape(1,M.shape[0]*M.shape[1])[0].tolist()
 
 def VPRINT0(*args):
-    if CONF.VERBOSE==0:print(*args)
+    if CONF.VERBOSE>=0:print(*args)
 def VPRINT1(*args):
     if CONF.VERBOSE>=1:print(*args)
 def VPRINT2(*args):
@@ -350,6 +350,47 @@ def translation2D(tr,r):
     dx=tr[0]*np.cos(tr[1])
     dy=tr[0]*np.sin(tr[1])
     return [r[0]+dx,r[1]+dy]
+
+def SEXtract(imgdir,imgfile,**options):
+    VPRINT2("\tRunning SEXtractor over %s..."%imgfile)
+
+    #Configuration 
+    default=OrderedDict(
+        CATALOG_NAME="asteroid.cat",
+        CATALOG_TYPE="FITS_1.0",
+        FILTER_NAME="asteroid.conv",
+        DETECT_THRESH=-1
+    )
+    default.update(options)
+    confile=imgdir+"/asteroid.sex"
+
+    #Save configuration file
+    f=open(confile,"w")
+    for item in default.items():f.write(str(item[0])+"\t"+str(item[1])+"\n")
+    f.close()
+
+    #Run SEXtractor
+    opts=""
+    opts+=" "+"-c asteroid.sex"
+    cmd=CONF.SEX_DIR+"bin/sex "+opts+" "+imgfile+".fits"
+    sys="cd "+imgdir+";"+cmd
+    out=System(sys)
+
+    #Process output
+    if out[-1][0]!=0:
+        print("\t\tError processing image",file=stderr)
+        error(out[-1][1])
+    else:
+        output=out[-1][1]
+        #STORE RESULTS
+        out=System("cd "+imgdir+";cp "+default["CATALOG_NAME"]+" %s.cat"%imgfile,
+                   False)
+        hdul=fits.open(imgdir+"%s.cat"%imgfile)
+        header=hdul[1].header
+        data=hdul[1].data
+        hdul.close()
+        nsources=len(data)
+    return output,header,data,nsources
 
 if __name__=="__main__":
     print("AIsteroid is ready to be ran")

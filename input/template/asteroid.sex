@@ -1,3 +1,4 @@
 CATALOG_NAME	asteroid.cat
 CATALOG_TYPE	FITS_1.0
 FILTER_NAME 	asteroid.conv
+#DETECT_THRESH   2

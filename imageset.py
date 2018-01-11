@@ -24,7 +24,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 #CONF.OVERWRITE=1 ##Overwrite all previous actions
 
 
-# In[71]:
+# In[3]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -59,7 +59,7 @@ print0("\tDone.")
 
 # ### Read the images
 
-# In[7]:
+# In[5]:
 
 
 images=[]
@@ -115,156 +115,158 @@ print0("\tDone.")
 
 # ### Show the images
 
-# In[10]:
+# In[9]:
 
 
 plotfile=PLOT_DIR+"cascade-%s.png"%CONF.SET
-plt.ioff() ##Comment to see interactive figure
+if CONF.QPLOT:
+    plt.ioff() ##Comment to see interactive figure
 
-if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
-    
-    print0("Showing images")
-    
-    ncols=2
-    nrows=int(nimgs/ncols)
+    if not os.path.isfile(plotfile) or CONF.OVERWRITE:
 
-    #Area of plotting
-    fig,axs=plt.subplots(nrows,ncols,sharex=True,sharey=True,figsize=(7,7))
+        print0("Showing images")
 
-    #Common options for plotting
-    imgargs=dict(cmap='gray_r',vmin=0,vmax=500)
+        ncols=2
+        nrows=int(nimgs/ncols)
 
-    for i,ax in enumerate(mat2lst(axs)):
-        ax.imshow(images[i]["data"],**imgargs)
-        ax.axis("off")
-        otime=images[i]["header"]["DATE-OBS"]
-        ax.set_title(images[i]["file"]+"\n"+"Time:"+otime,fontsize=8,position=(0.5,1.0))
+        #Area of plotting
+        fig,axs=plt.subplots(nrows,ncols,sharex=True,sharey=True,figsize=(7,7))
 
-    fig.tight_layout()
-    waterMark(axs[0,1])
-    fig.savefig(plotfile)
-else:
-    print0("Image '%s' already generated."%plotfile)
-print0("\tDone.")
+        #Common options for plotting
+        imgargs=dict(cmap='gray_r',vmin=0,vmax=500)
+
+        for i,ax in enumerate(mat2lst(axs)):
+            ax.imshow(images[i]["data"],**imgargs)
+            ax.axis("off")
+            otime=images[i]["header"]["DATE-OBS"]
+            ax.set_title(images[i]["file"]+"\n"+"Time:"+otime,fontsize=8,position=(0.5,1.0))
+
+        fig.tight_layout()
+        waterMark(axs[0,1])
+        fig.savefig(plotfile)
+    else:
+        if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
+    print0("\tDone.")
 Image(filename=plotfile)
 
 
 # ### Blink all image
 
-# In[68]:
+# In[7]:
 
 
 plotfile="%s/blinkall-%s.gif"%(PLOT_DIR,CONF.SET)
-plt.ioff() ##Comment to see interactive figure
+if CONF.QPLOT:
+    plt.ioff() ##Comment to see interactive figure
 
-if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
-    
-    print0("Blink images (all)")
-    
-    #Basic figure
-    fig=plt.figure(figsize=(8,8))
-    imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
-    im=plt.imshow(images[0]["data"],animated=True,**imgargs)
-    tm=plt.title("Set %s, Image 0: "%CONF.SET+images[0]["obstime"],fontsize=10)
-    waterMark(fig.gca())
-    plt.axis("off")
-    fig.tight_layout()
+    if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
 
-    def updatefig(i):
-        iimg=i%nimgs
-        im.set_array(images[iimg]["data"])
-        tm.set_text("Set %s, Image %d: "%(CONF.SET,iimg)+images[iimg]["obstime"])
-        return im,
+        print0("Blink images (all)")
 
-    #Create animation
-    ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
-                                interval=1000,repeat_delay=1000,
-                                repeat=True,blit=True)
-    saveAnim(ani,PLOT_DIR,plotfile)
-else:
-    print0("Image '%s' already generated."%plotfile)
-print0("\tDone.")
+        #Basic figure
+        fig=plt.figure(figsize=(8,8))
+        imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
+        im=plt.imshow(images[0]["data"],animated=True,**imgargs)
+        tm=plt.title("Set %s, Image 0: "%CONF.SET+images[0]["obstime"],fontsize=10)
+        waterMark(fig.gca())
+        plt.axis("off")
+        fig.tight_layout()
+
+        def updatefig(i):
+            iimg=i%nimgs
+            im.set_array(images[iimg]["data"])
+            tm.set_text("Set %s, Image %d: "%(CONF.SET,iimg)+images[iimg]["obstime"])
+            return im,
+
+        #Create animation
+        ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
+                                    interval=1000,repeat_delay=1000,
+                                    repeat=True,blit=True)
+        saveAnim(ani,PLOT_DIR,plotfile)
+    else:
+        if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
+    print0("\tDone.")
 Image(filename=plotfile)
 
 
-# In[65]:
+# In[8]:
 
 
 plotfile="%s/blink-%s.gif"%(PLOT_DIR,CONF.SET)
-plt.ioff() ##Comment to see interactive figure
+if CONF.QPLOT:
+    plt.ioff() ##Comment to see interactive figure
 
-if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
-    print0("Blink images (sections)")
+    if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
+        print0("Blink images (sections)")
 
-    data=images[0]["data"]
-    nrows,ncols=data.shape
-    drows=int(nrows/3)
-    dcols=int(ncols/3)
-    ratio=(1.0*drows)/dcols
+        data=images[0]["data"]
+        nrows,ncols=data.shape
+        drows=int(nrows/3)
+        dcols=int(ncols/3)
+        ratio=(1.0*drows)/dcols
 
-    fig=plt.figure(figsize=(8,8*ratio*9),)
+        fig=plt.figure(figsize=(8,8*ratio*9),)
 
-    axs=[]
-    axs+=[fig.add_subplot(10,1,1)]
-    axs+=[fig.add_subplot(10,1,2)]
-    for i in range(8):axs+=[fig.add_subplot(10,1,3+i,sharex=axs[1],sharey=axs[1])]
+        axs=[]
+        axs+=[fig.add_subplot(10,1,1)]
+        axs+=[fig.add_subplot(10,1,2)]
+        for i in range(8):axs+=[fig.add_subplot(10,1,3+i,sharex=axs[1],sharey=axs[1])]
 
 
-    ax=axs[0]
-    imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
-    ims00=ax.imshow(data,animated=True,**imgargs)
-    ax.axis("off")
-    ax.set_adjustable('box-forced')
-    ax.text(0.98,0.98,"All",color='b',transform=ax.transAxes,ha='right',va='top')
+        ax=axs[0]
+        imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
+        ims00=ax.imshow(data,animated=True,**imgargs)
+        ax.axis("off")
+        ax.set_adjustable('box-forced')
+        ax.text(0.98,0.98,"All",color='b',transform=ax.transAxes,ha='right',va='top')
 
-    n=1
-    ims=[]
-    txs=[]
-    for i in range(3):
-        im=[]
-        tx=[]
-        for j in range(3):
-            irow=i*drows
-            icol=j*dcols
-            subimg=data[irow:irow+drows,icol:icol+dcols]
-
-            axs[0].add_patch(pat.Rectangle([icol,irow],dcols,drows,color='r',fc='None'))
-            axs[0].text(icol+dcols/2,irow+drows/2,"%d,%d"%(i,j),color='b',ha='center',va='center')
-
-            ax=axs[n]
-            im+=[ax.imshow(subimg,animated=True,**imgargs)]
-            tx+=[ax.text(0.02,0.98,"Image 0",color='r',transform=ax.transAxes,ha='left',va='top')]
-            ax.text(0.98,0.98,"%d,%d"%(i,j),color='b',transform=ax.transAxes,ha='right',va='top')
-            ax.axis("off")
-            ax.set_xlim((0,dcols))
-            ax.set_ylim((drows,0))
-            ax.set_adjustable('box-forced')
-            n+=1
-        ims+=[im]
-        txs+=[tx]
-    fig.tight_layout()
-
-    def updatefig(i):
-        iimg=i%nimgs
-        data=images[iimg]["data"]
-        ims00.set_array(data)
+        n=1
+        ims=[]
+        txs=[]
         for i in range(3):
+            im=[]
+            tx=[]
             for j in range(3):
                 irow=i*drows
                 icol=j*dcols
                 subimg=data[irow:irow+drows,icol:icol+dcols]
-                ims[i][j].set_array(subimg)
-                txs[i][j].set_text("Image %d"%iimg)
-        return ims00,
 
-    #Create animation
-    ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
-                                interval=1000,repeat_delay=1000,
-                                repeat=True,blit=True)
-    saveAnim(ani,PLOT_DIR,plotfile)
-else:
-    print0("Image '%s' already generated."%plotfile)
+                axs[0].add_patch(pat.Rectangle([icol,irow],dcols,drows,color='r',fc='None'))
+                axs[0].text(icol+dcols/2,irow+drows/2,"%d,%d"%(i,j),color='b',ha='center',va='center')
 
-print0("\tDone.")    
+                ax=axs[n]
+                im+=[ax.imshow(subimg,animated=True,**imgargs)]
+                tx+=[ax.text(0.02,0.98,"Image 0",color='r',transform=ax.transAxes,ha='left',va='top')]
+                ax.text(0.98,0.98,"%d,%d"%(i,j),color='b',transform=ax.transAxes,ha='right',va='top')
+                ax.axis("off")
+                ax.set_xlim((0,dcols))
+                ax.set_ylim((drows,0))
+                ax.set_adjustable('box-forced')
+                n+=1
+            ims+=[im]
+            txs+=[tx]
+        fig.tight_layout()
+
+        def updatefig(i):
+            iimg=i%nimgs
+            data=images[iimg]["data"]
+            ims00.set_array(data)
+            for i in range(3):
+                for j in range(3):
+                    irow=i*drows
+                    icol=j*dcols
+                    subimg=data[irow:irow+drows,icol:icol+dcols]
+                    ims[i][j].set_array(subimg)
+                    txs[i][j].set_text("Image %d"%iimg)
+            return ims00,
+
+        #Create animation
+        ani=animation.FuncAnimation(fig,updatefig,frames=range(nimgs),
+                                    interval=1000,repeat_delay=1000,
+                                    repeat=True,blit=True)
+        saveAnim(ani,PLOT_DIR,plotfile)
+    else:
+        print0("Image '%s' already generated."%plotfile)
+    print0("\tDone.")    
 Image(filename=plotfile)
 

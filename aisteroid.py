@@ -387,6 +387,7 @@ def listImages():
 
 def saveAnim(ani,directory,animfile):
     out=System("rm -rf %s/.blink*"%directory)
+    out=System("rm -rf .blink*")
     ani.save(directory+'.blink.html')
     out=System("convert -delay 100 $(find %s -name '.blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(directory,animfile))
     out=System("rm -rf %s/.blink*"%directory)

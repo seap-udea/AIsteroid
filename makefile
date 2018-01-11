@@ -6,6 +6,9 @@ NUM_SETS=10
 branch:
 	@-echo $(BRANCH)
 
+convert:
+	bash convert.sh
+
 test:
 	@-$(PYTHON) test.py VERBOSE=$(VERBOSE)
 

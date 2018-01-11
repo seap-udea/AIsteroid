@@ -104,6 +104,7 @@ if not QIPY:
     use('Agg')
 import matplotlib.pyplot as plt
 import matplotlib.animation as animation
+import matplotlib.patches as pat
 from mpl_toolkits.mplot3d import Axes3D
 
 #Pretty printer
@@ -383,6 +384,12 @@ def SEXtract(imgdir,imgfile,**options):
 
 def listImages():
     out=System("for i in $(ls "+CONF.SETS_DIR+"*.zip);do echo -n $(basename $i |cut -f 1 -d'.');echo -n ', ';done")
+
+def saveAnim(ani,directory,animfile):
+    out=System("rm -rf %s/.blink*"%directory)
+    ani.save(directory+'.blink.html')
+    out=System("convert -delay 100 $(find %s -name '.blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(directory,animfile))
+    out=System("rm -rf %s/.blink*"%directory)
 
 if __name__=="__main__":
 

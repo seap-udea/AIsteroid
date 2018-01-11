@@ -7,7 +7,7 @@ branch:
 	@-echo $(BRANCH)
 
 convert:
-	bash convert.sh
+	bash util/convert.sh
 
 test:
 	@-$(PYTHON) test.py VERBOSE=$(VERBOSE)

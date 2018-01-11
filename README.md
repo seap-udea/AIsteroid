@@ -171,10 +171,12 @@ below:
    git clone https://github.com/seap-udea/AIsteroid.git   
    ```
 
-2. Create a ``makefile.in`` from the provided template:
+2. Copy configuration files from templates in ``util/makefile.in`` and
+   ``util/aisteroid.cfg``:
 
    ```
-   cp makefile.in.temp makefile.in
+   cp util/makefile.in .
+   cp util/aisteroid.cfg .
    ```
    
 3. Modify the variables in the file ``makefile.in`` to adjust it to
@@ -188,6 +190,9 @@ below:
 
    a. [Astrometry.net](http://astrometry.net/use.html): download and
       compile from the sources.
+
+   a. [SEXtractor](https://www.astromatic.net/software/sextractor):
+      download and compile from the sources.
 
    b. Python dependencies: using your preferred python run the
       following command to install python dependencies

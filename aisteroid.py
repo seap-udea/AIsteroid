@@ -131,8 +131,8 @@ CONF=loadArgv(CONF.__dict__)
 #############################################################
 CONF.SETS_DIR=CONF.DATA_DIR+"sets/"
 CONF.REP_DIR=CONF.DATA_DIR+"reports/"
-CONF.IMAGE_DIR="images/"
-CONF.INPUT_DIR="input/"
+CONF.IMAGE_DIR="doc/"
+CONF.INPUT_DIR="util/"
 
 #############################################################
 #CONSTANTS
@@ -343,15 +343,18 @@ def translation2D(tr,r):
 
 def SEXtract(imgdir,imgfile,**options):
     print2("\tRunning SEXtractor over %s..."%imgfile)
-
+        
     #Configuration 
     default=OrderedDict(
         CATALOG_NAME="asteroid.cat",
         CATALOG_TYPE="FITS_1.0",
         FILTER_NAME="asteroid.conv",
-        DETECT_THRESH=-1
     )
     default.update(options)
+
+    if "DETECT_THRESH" in default.keys():
+        if default["DETECT_THRESH"]<0:del default["DETECT_THRESH"]
+
     confile=imgdir+"/asteroid.sex"
 
     #Save configuration file

@@ -91,6 +91,12 @@ def loadArgv(default):
 QIPY=False
 if in_ipynb():
     QIPY=True
+if not QIPY:
+    def Image(url="",filename="",f=""):pass
+    def get_ipython():
+        foo=dictObj(dict())
+        foo.run_line_magic=lambda x,y:x
+        return foo
 
 #GRAPHICAL
 if not QIPY:
@@ -127,10 +133,6 @@ CONF.REP_DIR=CONF.DATA_DIR+"reports/"
 CONF.IMAGE_DIR="images/"
 CONF.INPUT_DIR="input/"
 
-if QIPY:
-    print("Configuration:")
-    PP(CONF.__dict__)
-
 #############################################################
 #CONSTANTS
 #############################################################
@@ -160,13 +162,13 @@ sex2dec=lambda s:np.sign(float(s.split()[0]))*(np.array([np.abs(float(x)) for x 
 #Convert a matrix of axes into a list
 mat2lst=lambda M:M.reshape(1,M.shape[0]*M.shape[1])[0].tolist()
 
-def VPRINT0(*args):
+def print0(*args):
     if CONF.VERBOSE>=0:print(*args)
-def VPRINT1(*args):
+def print1(*args):
     if CONF.VERBOSE>=1:print(*args)
-def VPRINT2(*args):
+def print2(*args):
     if CONF.VERBOSE>=2:print(*args)
-def VPRINT3(*args):
+def print3(*args):
     if CONF.VERBOSE>=3:print(*args)
 
 #############################################################
@@ -339,7 +341,7 @@ def translation2D(tr,r):
     return [r[0]+dx,r[1]+dy]
 
 def SEXtract(imgdir,imgfile,**options):
-    VPRINT2("\tRunning SEXtractor over %s..."%imgfile)
+    print2("\tRunning SEXtractor over %s..."%imgfile)
 
     #Configuration 
     default=OrderedDict(
@@ -379,6 +381,9 @@ def SEXtract(imgdir,imgfile,**options):
         nsources=len(data)
     return output,header,data,nsources
 
+def listImages():
+    out=System("for i in $(ls "+CONF.SETS_DIR+"*.zip);do echo -n $(basename $i |cut -f 1 -d'.');echo -n ', ';done")
+
 if __name__=="__main__":
 
     """
@@ -388,14 +393,14 @@ if __name__=="__main__":
     #========================================
     #LIST AVAILABLE IMAGE SETS
     #========================================
-    if "imagesets" in CONF.__dict__.keys():
-        VPRINT0("Available image sets")
+    if "listimages" in CONF.__dict__.keys():
+        print0("Available image sets")
         i=0
         listimg=glob.glob("%s/*.zip"%CONF.SETS_DIR)
         for imageset in listimg:
-            VPRINT0("\t"+os.path.basename(imageset))
+            print0("\t"+os.path.basename(imageset))
             if i>CONF.NUM_SETS:
-                VPRINT0("\t...")
+                print0("\t...")
                 break
             i+=1
-        VPRINT0("%d image sets available."%len(listimg))
+        print0("%d image sets available."%len(listimg))

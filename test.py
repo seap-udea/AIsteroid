@@ -13,26 +13,26 @@
 #######################################################
 from aisteroid import *
 
-VPRINT0("Testing AIsteroid.")
+print0("Testing AIsteroid.")
 #######################################################
 #CONFIGURATION TEST
 #######################################################
-VPRINT0("Checking configuration")
+print0("Checking configuration")
 for key in CONF.__dict__.keys():
-    VPRINT1("\t%s='%s'"%(key,CONF.__dict__[key]))
-VPRINT0("\tDone.")
+    print1("\t%s='%s'"%(key,CONF.__dict__[key]))
+print0("\tDone.")
 
 #######################################################
 #CHECKING DIRECTORIES
 #######################################################
-VPRINT0("Checking directories")
+print0("Checking directories")
 for key in CONF.__dict__.keys():
     if "_DIR" in key:
         mdir=CONF.__dict__[key]
         if os.path.isdir(mdir):
-            VPRINT1("\tDirectory %s='%s' checked"%(key,mdir))
+            print1("\tDirectory %s='%s' checked"%(key,mdir))
         else:
             error("\tDirectory %s='%s' does not exist"%(key,mdir))
-VPRINT0("\tDone.")
+print0("\tDone.")
 
-VPRINT0("All test passed.")
+print0("All test passed.")

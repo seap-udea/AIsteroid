@@ -58,13 +58,13 @@ simple steps:
    To list all the image sets available, run:
 
    ```
-	make imagesets
+	make listimages
    ```
    
    If you want to list more of them, run:
 
    ```
-	make NUM_SETS=100 imagesets
+	make NUM_SETS=100 listimages
    ```
 
 2. Unpack the image set:

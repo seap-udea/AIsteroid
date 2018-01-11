@@ -380,4 +380,22 @@ def SEXtract(imgdir,imgfile,**options):
     return output,header,data,nsources
 
 if __name__=="__main__":
-    print("AIsteroid is ready to be ran")
+
+    """
+      $PYTHON aisteroid.py option=1 
+    """
+    
+    #========================================
+    #LIST AVAILABLE IMAGE SETS
+    #========================================
+    if "imagesets" in CONF.__dict__.keys():
+        VPRINT0("Available image sets")
+        i=0
+        listimg=glob.glob("%s/*.zip"%CONF.SETS_DIR)
+        for imageset in listimg:
+            VPRINT0("\t"+os.path.basename(imageset))
+            if i>CONF.NUM_SETS:
+                VPRINT0("\t...")
+                break
+            i+=1
+        VPRINT0("%d image sets available."%len(listimg))

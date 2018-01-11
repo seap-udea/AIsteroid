@@ -45,9 +45,33 @@ Installation below) the automatized detection is performed in three
 simple steps:
 
 1. Get an image set.  They are normally provided in the form of a zip
-   file containing 4 or more images in FITS format.  The package is
-   provided with at least one image set (``data/sets/example.zip``).
-   Sets must be installed in the ``data/sets/`` directory.
+   file containing 4 or more images in FITS format.  
+
+   **AIsteroid** is provided with at least one image set
+   (``data/sets/example.zip``).  Sets must be installed in the
+   ``data/sets/`` directory.
+
+   If you are working on a campaign (e.g. All Colombia IASC campaign),
+   the campaign coordinator may have provided you a location where
+   many image sets are available. 
+
+   To list all the image sets available, run:
+
+   ```
+	make imagesets
+   ```
+   
+   If you want to list more of them, run:
+
+   ```
+	make NUM_SETS=100 imagesets
+   ```
+
+2. Unpack the image set:
+
+   ```
+      python imageset.py
+   ```
 
 2. Provide a configuration file for the observations.  This file is in
    the format of [astrometrica](http://www.astrometrica.at).  The

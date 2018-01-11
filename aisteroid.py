@@ -100,17 +100,6 @@ import matplotlib.pyplot as plt
 import matplotlib.animation as animation
 from mpl_toolkits.mplot3d import Axes3D
 
-
-
-"""
-QIPY=False
-if in_ipynb():
-    QIPY=True
-    Exit=lambda x:exit(x,keep_kernel=True)
-else:
-    Exit=exit
-"""
-
 #Pretty printer
 PP=pprint.PrettyPrinter(indent=2).pprint
 
@@ -133,11 +122,9 @@ CONF=loadArgv(CONF.__dict__)
 #############################################################
 #DIRECTORIES
 #############################################################
-CONF.DATA_DIR="data/"
 CONF.SETS_DIR=CONF.DATA_DIR+"sets/"
 CONF.REP_DIR=CONF.DATA_DIR+"reports/"
 CONF.IMAGE_DIR="images/"
-CONF.SCR_DIR="scratch/"
 CONF.INPUT_DIR="input/"
 
 if QIPY:

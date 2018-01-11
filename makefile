@@ -1,8 +1,12 @@
 include makefile.in
 BRANCH=$(shell bash .getbranch)
+VERBOSE=0
 
 branch:
 	@-echo $(BRANCH)
+
+test:
+	@-$(PYTHON) test.py VERBOSE=$(VERBOSE)
 
 aisteroid:
 	@-$(PYTHON) extract.py

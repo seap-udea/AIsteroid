@@ -1,7 +1,8 @@
 # AIsteroid
 
-This project is aimed at automatizing the process of searching for
-asteroids in image sets provided by observatories.
+This project is aimed at assiting and eventually automatizing the
+process of searching for asteroids in image sets provided by
+observatories.
 
 Let's suppose for instance that you have the following set of
 observations (credit:
@@ -32,9 +33,9 @@ intelligence** (neural networks, decision trees, deep learning, etc.),
 we can now teach machines to perform this kind of task.
 
 In this simple package you will find a series of python scripts (and
-ipython notebooks) intended to automatize the searching process, not
-for replacing entirely the role of humans, but at least for ease this
-process.
+ipython notebooks) intended to assist and automatize the searching
+process, not for replacing entirely the role of humans, but at least
+for ease this process.
 
 Quickstart
 ----------
@@ -171,47 +172,38 @@ below:
       python pip -m install astropy matplotlib 
       ```
 
-5. Unpack large data sets:
-
-   ```
-   make unpack
-   ```
-
-6. Test:
+6. Test it:
    
    ```
    make test
    ```
 
+   If you want additional details in your test run:
+
+   ```
+   make VERBOSE=1 test
+   ```
+
 If all the tests are passed you are ready to use **AIsteroid**.
 
-IPython Notebook
-----------------
+IPython Notebooks
+-----------------
 
 You want to run all the procedures using a graphical controled
-environment, we have provided an iPython notebook ``AIsteroid.ipynb``
-(see a graphical version of the notebook in [this
-link](https://github.com/seap-udea/AIsteroid/blob/master/AIsteroid.ipynb))
-containing all the required environment to search for asteroids in an
-image set. 
+environment, we have provided several iPython notebook (see for
+instance [this
+link](https://github.com/seap-udea/AIsteroid/blob/master/AIsteroid.ipynb)). The
+difference between the comman line scripts (``*.py`` files) and the
+notebooks are that in the latests you will find everything more
+explicitely.  Notebooks are great educational tools.
 
-The notebook can be used to control some of the aspects of the process
-that are not available in the unattended version of the detection
-scripts.  You may also use the notebook to inspect by your self, the
-images in search for moving objects.
-
-The notebook could be outdated with respect to the main detection
-pipeline scripts (``astrometry.py``, ``detect.py``, ``photometry.py``,
-``report.py``).
+The notebook could be outdated with respect to the main scripts
 
 Known problems
 --------------
 
 The package is not perfect.  This are some of the known problems of
 the package in the present release.
-
-* The coordinates of the reference stars are a different from that
-  detected by Astrometrica.
 
 Releases 
 --------
@@ -224,6 +216,20 @@ the problems mentioned in the "Known problems" section.
   
   * Initial release.
   * This is a non-usable release.
+
+- *Release 0.2*:
+ 
+  * Educational branch is realeased, ``edu``.  It is intended for
+    teaching how to deal with images.
+
+Contributors
+------------
+
+- Jorge I. Zuluaga, main developer.
+- Sergio Lopez, contributor
+- Jonathan Ospina, preparation of training sets.
+- Ivan Dario Moreno, preparation of training sets.
+- Liliana Piedrahita, preparation of training sets.
 
 Acknowledgements
 ----------------
@@ -243,4 +249,4 @@ astropy.
 Copyleft
 --------
 
-Jorge I. Zuluaga [)] 2017
+Jorge I. Zuluaga et al. [)] 2017

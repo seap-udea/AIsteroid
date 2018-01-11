@@ -1,6 +1,9 @@
 include makefile.in
 BRANCH=$(shell bash .getbranch)
 
+branch:
+	@-echo $(BRANCH)
+
 aisteroid:
 	@-$(PYTHON) extract.py
 	@-$(PYTHON) detect.py

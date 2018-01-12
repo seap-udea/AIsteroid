@@ -66,7 +66,7 @@ print0("\tDone.")
 
 images=[]
 
-if not "images" in AIA or CONF.OVERWRITE:
+if not "images" in AIA.keys() or CONF.OVERWRITE:
 
     print0("Reading images")
     for img in sorted(glob.glob(OUT_DIR+"*.fits")):
@@ -87,6 +87,7 @@ if not "images" in AIA or CONF.OVERWRITE:
 
         #Example of how the information stored in the header is recovered
         image["obstime"]=hdul[0].header["DATE-OBS"]
+        image["unixtime"]=date2unix(image["obstime"])
 
         #Close fits image
         hdul.close()
@@ -98,6 +99,7 @@ if not "images" in AIA or CONF.OVERWRITE:
 
         #Add image to list of images
         images+=[image]
+        #if not CONF.QSAVE:System("rm -r %s"%img)
 
     print("\tDone.")
     nimgs=len(images)
@@ -142,9 +144,8 @@ plotfile=PLOT_DIR+"cascade-%s.png"%CONF.SET
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
 
+    print0("Showing images in cascade")
     if not os.path.isfile(plotfile) or CONF.OVERWRITE:
-
-        print0("Showing images")
 
         ncols=2
         nrows=int(nimgs/ncols)
@@ -165,7 +166,7 @@ if CONF.QPLOT:
         waterMark(axs[0,1])
         fig.savefig(plotfile)
     else:
-        if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
+        if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")
 Image(filename=plotfile)
 
@@ -179,9 +180,8 @@ plotfile="%s/blinkall-%s.gif"%(PLOT_DIR,CONF.SET)
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
 
+    print0("Blink images (all)")
     if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
-
-        print0("Blink images (all)")
 
         #Basic figure
         fig=plt.figure(figsize=(8,8))
@@ -204,7 +204,7 @@ if CONF.QPLOT:
                                     repeat=True,blit=True)
         saveAnim(ani,PLOT_DIR,plotfile)
     else:
-        if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
+        if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")
 Image(filename=plotfile)
 
@@ -216,8 +216,8 @@ plotfile="%s/blink-%s.gif"%(PLOT_DIR,CONF.SET)
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
 
-    if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
-        print0("Blink images (sections)")
+    print0("Blink images (sections)")
+    if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:    
 
         data=images[0]["data"]
         nrows,ncols=data.shape
@@ -286,7 +286,7 @@ if CONF.QPLOT:
                                     repeat=True,blit=True)
         saveAnim(ani,PLOT_DIR,plotfile)
     else:
-        print0("Image '%s' already generated."%plotfile)
+        print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")    
 Image(filename=plotfile)
 

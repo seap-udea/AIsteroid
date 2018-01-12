@@ -208,7 +208,7 @@ def _run(cmd):
     (output,error)=p.communicate()
     yield p.returncode,error
 
-def System(cmd,verbose=True):
+def System(cmd,verbose=True,qexit=(False,None)):
     out=[]
     for path in _run(cmd):
         try:
@@ -217,6 +217,13 @@ def System(cmd,verbose=True):
         except:
             out+=[(path[0],path[1].decode("utf-8"))]
             pass
+    if qexit[0] and out[-1][0]>0:
+        errcode="Error:\n"+out[-1][1]
+        try:
+            qexit[1].write("Error excuting:\n\t%s\n"%cmd)
+            qexit[1].write(errcode)
+        except:pass
+        error(errcode)
     return out
 
 #Convert a record array (mixed type) in a double arrays
@@ -388,11 +395,12 @@ def SEXtract(imgdir,imgfile,**options):
 def listImages():
     out=System("for i in $(ls "+CONF.SETS_DIR+"*.zip);do echo -n $(basename $i |cut -f 1 -d'.');echo -n ', ';done")
 
-def saveAnim(ani,directory,animfile):
+def saveAnim(ani,directory,animfile,nimg=4):
     out=System("rm -rf %s/.blink*"%directory)
     out=System("rm -rf .blink*")
     ani.save(directory+'.blink.html')
-    out=System("convert -delay 100 $(find %s -name '.blink*.png' -o -name 'frame*.png' |grep -v '04' |sort) %s"%(directory,animfile))
+    cmd="convert -delay 100 $(find %s -name '.blink*.png' -o -name 'frame*.png' |sort |head -n %d) %s"%(directory,nimg,animfile)
+    out=System(cmd)
     out=System("rm -rf %s/.blink*"%directory)
 
 if __name__=="__main__":
@@ -400,7 +408,6 @@ if __name__=="__main__":
     """
       $PYTHON aisteroid.py option=1 
     """
-    
     #========================================
     #LIST AVAILABLE IMAGE SETS
     #========================================

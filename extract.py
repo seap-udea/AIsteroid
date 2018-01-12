@@ -15,18 +15,19 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[2]:
+# In[13]:
 
 
 #listImages() ##See the list of imagesets
 #CONF.SET="example" ##Choose your preferred imageset
 #CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
 #CONF.OVERWRITE=1 ##Overwrite all previous actions
+CONF.SET='ps1-20180107_1_set045'
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[14]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -49,7 +50,7 @@ else:
 
 # ### Extract sources
 
-# In[4]:
+# In[15]:
 
 
 print0("Extracting sources")
@@ -109,16 +110,15 @@ print0("\tDone.")
 
 # ### Show sources
 
-# In[5]:
+# In[16]:
 
 
 plotfile=PLOT_DIR+"sources-%s.png"%CONF.SET
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
-    
-    if not os.path.isfile(plotfile) or CONF.OVERWRITE:
 
-        print0("Showing sources")
+    print0("Showing sources")
+    if not os.path.isfile(plotfile) or CONF.OVERWRITE:    
 
         ncols=2
         nrows=int(nimgs/ncols)
@@ -141,14 +141,14 @@ if CONF.QPLOT:
         waterMark(axs[0,1])
         fig.savefig(plotfile)
     else:
-        if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
+        if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")
 Image(filename=plotfile)
 
 
 # ### Align sources
 
-# In[6]:
+# In[17]:
 
 
 print0("Finding alignment transformation")
@@ -219,7 +219,7 @@ else:
 print("\tDone.")
 
 
-# In[12]:
+# In[21]:
 
 
 plotfile="%s/alignment-%s.png"%(PLOT_DIR,CONF.SET)
@@ -228,6 +228,7 @@ detector=AIA["detector"]
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
 
+    print0("Showing alignment")
     if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:
         plt.ioff()
         fig,axs=plt.subplots(3,2,sharex=True,sharey=True,figsize=(8,12))
@@ -269,8 +270,8 @@ if CONF.QPLOT:
 
         fig.tight_layout()
         fig.savefig(plotfile)
-else:
-    if CONF.QPLOT:print0("Image '%s' already generated."%plotfile)
-    print0("\tDone.")
+    else:
+        if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
+        print0("\tDone.")
 Image(filename=plotfile)
 

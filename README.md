@@ -70,8 +70,11 @@ simple steps:
 2. Unpack the image set:
 
    ```
-      python imageset.py
+      python unpack.py
    ```
+
+   **NOTE**: Remind that you may run the script in Jupyter using the
+             notebook with the same name, ``unpack.ipynb``.
 
 2. Provide a configuration file for the observations.  This file is in
    the format of [astrometrica](http://www.astrometrica.at).  The

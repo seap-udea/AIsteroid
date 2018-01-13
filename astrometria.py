@@ -24,6 +24,7 @@ if QIPY:
     #CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
     CONF.OVERWRITE=1 ##Overwrite all previous actions
     CONF.VERBOSE=1 ## Show all outputs
+    #CONF.SET='ps1-20180108_2_set199'
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
@@ -161,12 +162,11 @@ Image(filename=plotfile)
 
 # ### Matching detected stars with sources
 
-# In[28]:
+# In[7]:
 
 
 print("Matching stars")
-CONF.OVERWRITE=1
-CONF.NREFSTARS=20
+
 if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
     
     if CONF.OVERWRITE:sources["STAR"]=0
@@ -197,7 +197,6 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
             if nbright>=CONF.NREFSTARS:break
         
         bright=imgsources.loc[indbright]
-        sources.loc[indbright,"STAR"]=1
         nbright=len(bright)
 
         print("\t\tNumber of selected bright stars:",len(bright))
@@ -243,8 +242,9 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
 
         imgsources[["RA","DEC"]]=pd.DataFrame(xya,columns=["RA","DEC"],index=imgsources.index)
         sources.loc[sources.IMG==i,["RA","DEC"]]=imgsources
-
+        
         #Photometric properties
+        sources.loc[indbright,"STAR"]=1
         sources.loc[sources.IMG==i,["MAG_ASTRO"]]=imgsources["MAG_BEST"]+image["zeropoint"]
         sources.loc[sources.IMG==i,["ERR_MAG_ASTRO"]]=(imgsources["MAGERR_BEST"]**2+image["zerostd"]**2).apply(np.sqrt)
 
@@ -267,7 +267,7 @@ FLOG.flush()
 
 # ### Show bright image alignment
 
-# In[29]:
+# In[ ]:
 
 
 plotfile=PLOT_DIR+"starsalignment-%s.png"%CONF.SET
@@ -309,51 +309,7 @@ print0("\tDone.")
 Image(filename=plotfile)
 
 
-# ### Astrometry using astromery.net
-
-# In[47]:
-
-
-for i,image in enumerate(images):
-
-    file=image["file"]
-    header=image["header"]
-
-    # Get bright stars
-    bright=sources.loc[(sources.STAR==1)&(sources.IMG==i)]
-    
-    # Read fits and replace with bright stars
-    img=OUT_DIR+file+".fits"
-    hdul=fits.open(img)
-    data=hdul[0].data
-    data=np.zeros_like(data)
-    for ind in bright.index:
-        data[int(bright.loc[ind,"X_IMAGE"]),int(bright.loc[ind,"Y_IMAGE"])]=255
-    hdul[0].data=data
-    hdul.writeto(OUT_DIR+"this-%d.fits"%i,overwrite=True)
-    hdul.close()
-    
-    #GET COORDINATES
-    ra=sex2dec(header["OBJCTRA"])*15
-    dec=sex2dec(header["OBJCTDEC"])
-
-    #ASTROMETRY.NET COMMAND
-    print("Running astrometry over %s..."%file)
-    opts=""
-    opts+=" "+"--use-sextractor --sextractor-path "+CONF.SEX_DIR+"bin/sex"
-    opts+=" "+"--no-plots"
-    opts+=" "+"--ra %.7f --dec %.7f --radius 1"%(ra,dec)
-    opts+=" "+"--guess-scale --overwrite"
-    #cmd=CONF.AST_DIR+"bin/solve-field "+opts+" "+file+".fits"
-    cmd=CONF.AST_DIR+"bin/solve-field "+opts+" "+"this-%d.fits"%i
-    sys="cd "+OUT_DIR+";"+cmd
-    out=System(sys,False)
-    print("\tAstrometry processing successful")
-    break
-print("Done.")
-
-
-# In[41]:
+# In[ ]:
 
 
 print0("Task completed.")

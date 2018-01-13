@@ -13,7 +13,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ## Task: Detect moving objects
 
-# In[3]:
+# In[2]:
 
 
 if QIPY:
@@ -23,11 +23,12 @@ if QIPY:
     CONF.OVERWRITE=1 ##Overwrite all previous actions
     CONF.VERBOSE=1 ## Show all outputs
     #CONF.SET="ps1-20180107_1_set045"
+    CONF.SET="ps1-20180108_2_set199"
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[4]:
+# In[3]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -52,14 +53,14 @@ else:
 
 # ### Detect potential moving objects
 
-# In[5]:
+# In[4]:
 
 
 print0("Potential moving objects")
 print1("\tSearching RADIUS (pixels, arcsec):",CONF.RADIUS)
 RADIUS=CONF.RADIUS
 
-if len(sources[sources.NIMG>0])==0 or CONF.OVERWRITE:
+if len(sources[sources.NIMG>1])==0 or CONF.OVERWRITE:
     iobj=1
     for i,ind in enumerate(sources.index):
         obj=sources.loc[ind]
@@ -81,6 +82,12 @@ if len(sources[sources.NIMG>0])==0 or CONF.OVERWRITE:
         if nimg==4:
             sources.loc[inds,"OBJ"]=iobj
             iobj+=1
+    
+    AIA["sources"]=sources
+    pickle.dump(AIA,open(AIA_FILE,"wb"))
+else:
+    print("\tMoving objetcs already detected")
+    sources=AIA["sources"]
     
 moving=sources[sources.NIMG<2]
 rest=sources[sources.NIMG>=2]    
@@ -267,7 +274,7 @@ if not "objects" in AIA.keys() or CONF.OVERWRITE:
                             print1("\t\t\t\t***Object rejected by magnitude variance***")
                             continue
 
-                        print0("\tObject %d detected"%mobj)
+                        print0("\t\t\t\tObject %d detected"%mobj)
                         sources.loc[objs[objs>0].tolist(),"MOBJ"]=mobj
                         objects+=[objs]
 

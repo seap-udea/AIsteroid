@@ -8,7 +8,7 @@ Let's suppose for instance that you have the following set of
 observations (credit:
 [Pan-STARRS](https://panstarrs.stsci.edu/)/[IASC](http://iasc.hsutx.edu/)):
 
-![alt text](https://raw.githubusercontent.com/seap-udea/AIsteroid/blob/edu/doc/images/example-raw.gif)
+![alt text](https://github.com/seap-udea/AIsteroid/blob/edu/doc/images/example-raw.gif)
 
 How many moving objects do you dectect in this image? 
 

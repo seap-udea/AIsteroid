@@ -16,7 +16,7 @@ If your answer is one, you are a good obsever.  However, if you see
 between 1 and 3 objects, you seem to have a trained eye.  But if you
 see 4, probably you are a machine! (to see the actual number of moving
 objects see the image in [this
-link](https://github.com/seap-udea/AIsteroid/blob/edu/doc/images/example-detection.gif)).
+link](https://raw.githubusercontent.com/seap-udea/AIsteroid/edu/doc/images/example-detection.gif)).
 
 This is precisely the purpose of **AIsteroid**. 
 

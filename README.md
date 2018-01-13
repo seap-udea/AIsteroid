@@ -77,7 +77,8 @@ simple steps:
       the notebook with the same name, ``unpack.ipynb``.
 
    This command will execute the action in the default image set
-   (``example``).  If you want to change the image set use:
+   (``example``) or equivalently the set defined in the `file
+   ``aisteroid.cfg``.  If you want to change the image set use:
 
    ```
       python unpack.py "SET='ps1-20181_1_000'"
@@ -112,6 +113,18 @@ simple steps:
       python photometry.py
    ```
 
+You may perform all the previous actions at once for a given set using
+the abbreviated command:
+
+   ```
+      make all
+   ```
+    
+If you want to use a set different to the default one:
+
+   ```
+      make all SET=ps1-20181_1_000
+   ```
 
 Downloading and installating
 ----------------------------

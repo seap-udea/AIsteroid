@@ -2,6 +2,7 @@ include makefile.in
 BRANCH=$(shell bash .getbranch)
 VERBOSE=0
 NUM_SETS=10
+CONVERT=$(shell ls *.ipynb)
 
 all:
 	@-$(PYTHON) unpack.py "SET='$(SET)'"
@@ -14,7 +15,7 @@ branch:
 	@-echo $(BRANCH)
 
 convert:
-	bash util/convert.sh
+	bash util/convert.sh $(CONVERT)
 
 test:
 	@-$(PYTHON) test.py VERBOSE=$(VERBOSE)

@@ -15,6 +15,9 @@ from aisteroid import *
 
 print0("Testing AIsteroid.")
 
+print(dec2sex(315.67,format="string"))
+exit(0)
+
 #######################################################
 #CONFIGURATION TEST
 #######################################################

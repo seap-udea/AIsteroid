@@ -125,6 +125,9 @@ Example:
 """
 CONF=loadArgv(CONF.__dict__)
 
+#CLEAN THE CONF.SET VARIABLE
+CONF.SET=CONF.SET.split("/")[-1].replace(".zip","")
+
 #############################################################
 #DIRECTORIES
 #############################################################
@@ -186,14 +189,18 @@ def Config(c,x):
         except:vs=vs[0]
     return vs
 
-def dec2sex(d):
+def dec2sex(d,format="list"):
     s=np.sign(d)
     d=np.abs(d)
     dg=int(d)
     mm=(d-dg)*60
     mg=int(mm)
     sg=(mm-mg)*60
-    return s*dg,mg,sg
+    if format=="list":
+        sex=s*dg,mg,sg
+    if format=="string":
+        sex="%02d %02d %02.2f"%(s*dg,mg,sg)
+    return sex
 
 #Intelligent Shell script execution
 def _run(cmd):

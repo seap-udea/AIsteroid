@@ -5,6 +5,10 @@ NUM_SETS=10
 
 all:
 	@-$(PYTHON) unpack.py "SET='$(SET)'"
+	@-$(PYTHON) extract.py "SET='$(SET)'"
+	@-$(PYTHON) detect.py "SET='$(SET)'"
+	@-$(PYTHON) astrometria.py "SET='$(SET)'"
+	@-$(PYTHON) photometry.py "SET='$(SET)'"
 
 branch:
 	@-echo $(BRANCH)

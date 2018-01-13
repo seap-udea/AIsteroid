@@ -201,7 +201,7 @@ below:
       following command to install python dependencies
    
       ```
-      python pip -m install astropy matplotlib 
+      python pip -m install astropy matplotlib scikit-image
       ```
 
 6. Test it:

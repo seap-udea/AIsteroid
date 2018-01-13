@@ -3,6 +3,9 @@ BRANCH=$(shell bash .getbranch)
 VERBOSE=0
 NUM_SETS=10
 
+all:
+	@-$(PYTHON) unpack.py "SET='$(SET)'"
+
 branch:
 	@-echo $(BRANCH)
 

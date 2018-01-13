@@ -149,9 +149,13 @@ if nobj>0:
                 #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
                 #FIT RESULTS
                 #&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&
-                g_init=custom_model(gaussianLevel2)()
-                fit=fitting.SLSQPLSQFitter()
-                g=fit(g_init,X,Y,P,verblevel=0)
+                try:
+                    g_init=custom_model(gaussianLevel2)()
+                    fit=fitting.SLSQPLSQFitter()
+                    g=fit(g_init,X,Y,P,verblevel=0)
+                except:
+                    print1("\t\t\tFit has failed. Skipping")
+                    continue
 
                 xc=g.meanx.value
                 yc=g.meany.value

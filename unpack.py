@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[1]:
+# In[10]:
 
 
 from aisteroid import *
@@ -15,18 +15,20 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[2]:
+# In[32]:
 
 
-#listImages() ##See the list of imagesets
-#CONF.SET="example" ##Choose your preferred imageset
-#CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
-#CONF.OVERWRITE=1 ##Overwrite all previous actions
+if QIPY:
+    #listImages() ##See the list of imagesets
+    #CONF.SET="example" ##Choose your preferred imageset
+    #CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
+    CONF.OVERWRITE=0 ##Overwrite all previous actions
+    CONF.VERBOSE=1 ## Show all outputs
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[12]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -37,31 +39,36 @@ AIA=dict()
 AIA_FILE=OUT_DIR+CONF.SET+".aia"
 SET_FILE=CONF.SETS_DIR+CONF.SET+".zip"
 PLOT_DIR=OUT_DIR+"plots/"
+ELOG=open("errors.log","a")
+SYSOPTS=dict(qexit=[True,ELOG])
 if not os.path.isfile(SET_FILE):
     error("No set file '%s'"%setfile)
 
 
 # ### Unpack the images
 
-# In[4]:
+# In[13]:
 
 
 print0("Unpacking images of set %s"%(CONF.SET))
 if not os.path.isdir(OUT_DIR) or CONF.OVERWRITE:
-    out=System("rm -rf "+OUT_DIR)
-    out=System("mkdir -p "+OUT_DIR)
-    out=System("mkdir -p "+PLOT_DIR)
-    out=System("unzip -j -o -d "+OUT_DIR+" "+SET_FILE)
+    out=System("rm -rf "+OUT_DIR,**SYSOPTS)
+    out=System("mkdir -p "+OUT_DIR,**SYSOPTS)
+    out=System("mkdir -p "+PLOT_DIR,**SYSOPTS)
+    out=System("unzip -j -o -d "+OUT_DIR+" "+SET_FILE,**SYSOPTS)
     pickle.dump(AIA,open(AIA_FILE,"wb"))
 else:
     print0("\tAlready unpacked.")
     AIA=pickle.load(open(AIA_FILE,"rb"))
+
+FLOG=open(OUT_DIR+"unpack.log","a")
+SYSOPTS["qexit"][1]=FLOG
 print0("\tDone.")
 
 
 # ### Read the images
 
-# In[9]:
+# In[14]:
 
 
 images=[]
@@ -88,6 +95,7 @@ if not "images" in AIA.keys() or CONF.OVERWRITE:
         #Example of how the information stored in the header is recovered
         image["obstime"]=hdul[0].header["DATE-OBS"]
         image["unixtime"]=date2unix(image["obstime"])
+        FLOG.write(image["file"]+":"+str(image["obstime"])+":"+str(image["unixtime"])+"\n")
 
         #Close fits image
         hdul.close()
@@ -104,26 +112,6 @@ if not "images" in AIA.keys() or CONF.OVERWRITE:
     print("\tDone.")
     nimgs=len(images)
     print("Number of images: %d"%nimgs)
-
-    #Telescope and camera (detector) properties
-    detector=dictObj(dict())
-    print("\tTelescope & CCD Properties:")
-    detector.FOCAL=Config(CFG,"FocalLength") #mm
-    detector.PW=Config(CFG,"PixelWide") #mm
-    detector.PH=Config(CFG,"PixelHigh") #mm
-    detector.SIZEX=images[0]["header"]["NAXIS1"]
-    detector.SIZEY=images[0]["header"]["NAXIS2"]
-    detector.PWD=np.arctan(detector.PW/detector.FOCAL)*RAD
-    detector.PHD=np.arctan(detector.PW/detector.FOCAL)*RAD
-    detector.PXSIZE=(detector.PWD+detector.PHD)/2
-    print("\t\tFocal lenght (mm) :",detector.FOCAL)
-    print("\t\tPixel size (x mm,y mm) :",detector.PW,detector.PH)
-    print("\t\tImage size (x px,y px) :",detector.SIZEX,detector.SIZEY)
-    print("\t\tPixel size (arcsec):",detector.PXSIZE/ARCSEC)
-    print("\t\tCamera field (x deg,y deg) :",detector.SIZEX*detector.PWD,detector.SIZEY*detector.PHD) 
-    
-    #Store the images information into the AIA dictionary
-    AIA["detector"]=detector
     AIA["images"]=images
     pickle.dump(AIA,open(AIA_FILE,"wb"))
     
@@ -133,11 +121,12 @@ else:
     images=AIA["images"]
     nimgs=len(images)
 print0("\tDone.")
+FLOG.flush()
 
 
 # ### Show the images
 
-# In[10]:
+# In[15]:
 
 
 plotfile=PLOT_DIR+"cascade-%s.png"%CONF.SET
@@ -171,9 +160,113 @@ if CONF.QPLOT:
 Image(filename=plotfile)
 
 
+# ### Detect image defects
+
+# In[33]:
+
+
+print0("Detecting borders and image defects")
+
+if not "borders" in AIA.keys() or CONF.OVERWRITE:
+
+    rsamp=CONF.BORDERPREC
+    csamp=CONF.BORDERPREC
+    borders=[]
+    for i,image in enumerate(images):
+    
+        print1("\tDetecting borders in image %d"%i)
+        #Sweep rows
+        qdetect=1
+        border=[]
+        data=image["data"]
+        nrows,ncols=data.shape
+        for row in range(rsamp,nrows,rsamp):
+            line=data[row,:]
+            for col in range(csamp,ncols,csamp):
+                vstd=line[col:col+csamp].std()
+                if vstd<1:
+                    if qdetect:
+                        border+=[[col-csamp,row]]
+                        qdetect=0
+                else:
+                    if not qdetect:
+                        border+=[[col+csamp,row]]
+                        qdetect=1
+        border+=[[row,col]]
+
+        #Sweep columns
+        qdetect=1
+        for col in range(csamp,ncols,csamp):
+            column=data[:,col]
+            for row in range(rsamp,nrows,rsamp):
+                vstd=column[row:row+csamp].std()
+                if vstd<1:
+                    if qdetect:
+                        border+=[[col,row-rsamp]]
+                        qdetect=0
+                else:
+                    if not qdetect:
+                        border+=[[col,row+rsamp]]
+                        qdetect=1
+        border+=[[row,col]]
+        border=np.array(border)
+        print1("\tNumber of border points:",len(border))
+        FLOG.write("Border points in image %d: %d\n"%(i,len(border)))
+
+        borders+=[border]
+        
+    AIA["borders"]=borders
+    pickle.dump(AIA,open(AIA_FILE,"wb"))
+else:
+    print("Borders already detected.")
+    borders=AIA["borders"]
+
+print("\tDone.")
+FLOG.flush()
+
+
+# ### Showing borders and defects
+
+# In[34]:
+
+
+plotfile=PLOT_DIR+"borders-%s.png"%CONF.SET
+
+if CONF.QPLOT:
+    plt.ion() ##Comment to see interactive figure
+
+    print0("Showing borders and defects of images")
+    if not os.path.isfile(plotfile) or CONF.OVERWRITE:
+
+        ncols=2
+        nrows=int(nimgs/ncols)
+
+        #Area of plotting
+        fig,axs=plt.subplots(nrows,ncols,sharex=True,sharey=True,figsize=(7,7))
+
+        #Common options for plotting
+        imgargs=dict(cmap='gray_r',vmin=0,vmax=500)
+
+        for i,ax in enumerate(mat2lst(axs)):
+            border=borders[i]
+            ax.imshow(images[i]["data"],**imgargs)
+            ax.plot(border[:,0],border[:,1],'ro',ms=0.5)
+            ax.axis("off")
+            otime=images[i]["header"]["DATE-OBS"]
+            ax.set_title(images[i]["file"]+"\n"+"Time:"+otime,fontsize=8,position=(0.5,1.0))
+            
+        fig.tight_layout()
+        waterMark(axs[0,1])
+        fig.savefig(plotfile)
+    else:
+        if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
+    print0("\tDone.")
+Image(filename=plotfile)
+
+
 # ### Blink all image
 
-# In[11]:
+# In[7]:
 
 
 plotfile="%s/blinkall-%s.gif"%(PLOT_DIR,CONF.SET)
@@ -209,7 +302,7 @@ if CONF.QPLOT:
 Image(filename=plotfile)
 
 
-# In[12]:
+# In[8]:
 
 
 plotfile="%s/blink-%s.gif"%(PLOT_DIR,CONF.SET)
@@ -289,4 +382,11 @@ if CONF.QPLOT:
         print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")    
 Image(filename=plotfile)
+
+
+# In[9]:
+
+
+print("Task completed.")
+FLOG.close()
 

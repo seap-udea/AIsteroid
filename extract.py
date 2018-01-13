@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[1]:
+# In[12]:
 
 
 from aisteroid import *
@@ -18,11 +18,13 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 # In[13]:
 
 
-#listImages() ##See the list of imagesets
-#CONF.SET="example" ##Choose your preferred imageset
-#CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
-#CONF.OVERWRITE=1 ##Overwrite all previous actions
-CONF.SET='ps1-20180107_1_set045'
+if QIPY:
+    #listImages() ##See the list of imagesets
+    #CONF.SET="example" ##Choose your preferred imageset
+    #CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
+    CONF.VERBOSE=1 ## Show all outputs
+    CONF.OVERWRITE=1 ##Overwrite all previous actions
+    #CONF.SET='ps1-20180107_1_set045'
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
@@ -38,6 +40,8 @@ AIA=dict()
 AIA_FILE=OUT_DIR+CONF.SET+".aia"
 SET_FILE=CONF.SETS_DIR+CONF.SET+".zip"
 PLOT_DIR=OUT_DIR+"plots/"
+FLOG=open(OUT_DIR+"extract.log","a")
+SYSOPTS=dict(qexit=[True,FLOG])
 if not os.path.isfile(AIA_FILE):
     error("Set '%s' has not been unpacked"%CONF.SET)
 else:
@@ -55,8 +59,9 @@ else:
 
 print0("Extracting sources")
 
-if not "sources" in AIA or CONF.OVERWRITE:
+if not "sources" in AIA.keys() or CONF.OVERWRITE:
     sources=pd.DataFrame()
+    FLOG.write("Detect threshold: %d\n"%(CONF.DETECT_THRESH))
     for i,image in enumerate(images):
         file=image["file"]
         header=image["header"]
@@ -68,6 +73,7 @@ if not "sources" in AIA or CONF.OVERWRITE:
         source=pd.DataFrame(hdul[1].data)
         hdul.close()
         print0("\t\t%d sources saved."%len(source))
+        FLOG.write("Sources in image %d: %d\n"%(i,len(source)))
 
         #Additional properties
         source["T"]=date2unix(image["obstime"])
@@ -102,10 +108,11 @@ if not "sources" in AIA or CONF.OVERWRITE:
     pickle.dump(AIA,open(AIA_FILE,"wb"))
 else:
     print("Sources already detected.")
-    AIA=pickle.load(open(AIA_FILE,"rb"))
     sources=AIA["sources"]
 print0("\tTotal sources read: %d"%len(sources))    
 print0("\tDone.")
+FLOG.write("Total number of sources: %d\n"%(len(sources)))
+FLOG.flush()
 
 
 # ### Show sources
@@ -204,26 +211,30 @@ if not "alignments" in AIA or CONF.OVERWRITE:
 
         ta,sa=matchSources(sources[sources.IMG==(i+1)],sources[sources.IMG==0])
         print1("\t\t\tAverage distance before alignment:",np.abs(sa-ta).mean())
+        FLOG.write("Initial misalignment image %d: %f\n"%(i,np.abs(sa-ta).mean()))
 
         ta,sa=matchSources(pd.DataFrame(sources.loc[sources.IMG==(i+1),["X_ALIGN","Y_ALIGN"]].values,columns=columns),
                            pd.DataFrame(sources.loc[sources.IMG==0,["X_ALIGN","Y_ALIGN"]].values,columns=columns))
         print0("\t\t\tAverage distance after alignment:",np.abs(sa-ta).mean())
+        FLOG.write("Final misalignment image %d: %f\n"%(i,np.abs(sa-ta).mean()))
+        
     
     AIA["alignments"]=sources
     pickle.dump(AIA,open(AIA_FILE,"wb"))
 else:
     print("\tAlignment already computed.")
-    AIA=pickle.load(open(AIA_FILE,"rb"))
     alignments=AIA["alignments"]
 
 print("\tDone.")
+FLOG.flush()
 
 
-# In[21]:
+# ### Show alignment
+
+# In[18]:
 
 
 plotfile="%s/alignment-%s.png"%(PLOT_DIR,CONF.SET)
-detector=AIA["detector"]
 
 if CONF.QPLOT:
     plt.ioff() ##Comment to see interactive figure
@@ -233,17 +244,18 @@ if CONF.QPLOT:
         plt.ioff()
         fig,axs=plt.subplots(3,2,sharex=True,sharey=True,figsize=(8,12))
 
-        dx=detector.SIZEX/10
-        dy=detector.SIZEY/10
-
         #Show the misaligned sources
         images[0]["xy"]=sources.loc[sources.IMG==0,["X_IMAGE","Y_IMAGE"]].values
         images[0]["xy_aligned"]=sources.loc[sources.IMG==0,["X_ALIGN","Y_ALIGN"]].values
+        
         for i,image in enumerate(images[1:]):
             iimg=i+1
             imsource=sources[sources.IMG==(i+1)]
             image["xy"]=imsource[["X_IMAGE","Y_IMAGE"]].values
             image["xy_aligned"]=imsource[["X_ALIGN","Y_ALIGN"]].values
+            dy,dx=image["data"].shape
+            dy/=5
+            dx/=5
 
             xcen=image["xy"][:,0].mean()
             ycen=image["xy"][:,1].mean()
@@ -274,4 +286,11 @@ if CONF.QPLOT:
         if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
         print0("\tDone.")
 Image(filename=plotfile)
+
+
+# In[19]:
+
+
+print("Task completed.")
+FLOG.close()
 

@@ -222,6 +222,8 @@ def System(cmd,verbose=True,qexit=(False,None)):
         try:
             qexit[1].write("Error excuting:\n\t%s\n"%cmd)
             qexit[1].write(errcode)
+            qexit[1].close()
+            print("Writing error")
         except:pass
         error(errcode)
     return out

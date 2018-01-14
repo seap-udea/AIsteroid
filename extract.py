@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[12]:
+# In[1]:
 
 
 from aisteroid import *
@@ -15,7 +15,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[13]:
+# In[2]:
 
 
 if QIPY:
@@ -29,32 +29,34 @@ if QIPY:
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[14]:
+# In[3]:
 
 
 #DO NOT MODIFY THIS LINES
 print0("*"*60+"\nSOURCES FOR SET '%s'\n"%CONF.SET+"*"*60)
+
 OUT_DIR=CONF.SCR_DIR+CONF.SET+"/"
+if not os.path.isdir(OUT_DIR):
+    error("Set '%s' has not been unpacked"%CONF.SET)
+
 CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
-AIA=dict()
-AIA_FILE=OUT_DIR+CONF.SET+".aia"
-SET_FILE=CONF.SETS_DIR+CONF.SET+".zip"
+
 PLOT_DIR=OUT_DIR+"plots/"
 FLOG=open(OUT_DIR+"extract.log","a")
 SYSOPTS=dict(qexit=[True,FLOG])
+
+AIA_FILE=OUT_DIR+CONF.SET+".aia"
 if not os.path.isfile(AIA_FILE):
-    error("Set '%s' has not been unpacked"%CONF.SET)
+    error("Unpack task not ran yet on set '%s'"%CONF.SET)
 else:
-    System("cp "+CONF.INPUT_DIR+"analysis/* "+OUT_DIR)
     AIA=pickle.load(open(AIA_FILE,"rb"))
     images=AIA["images"]
     nimgs=len(images)
-    
 
 
 # ### Extract sources
 
-# In[15]:
+# In[4]:
 
 
 print0("Extracting sources")

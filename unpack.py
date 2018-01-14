@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[10]:
+# In[1]:
 
 
 from aisteroid import *
@@ -15,7 +15,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[32]:
+# In[2]:
 
 
 if QIPY:
@@ -28,21 +28,26 @@ if QIPY:
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[12]:
+# In[3]:
 
 
 #DO NOT MODIFY THIS LINES
 print0("*"*60+"\nUNPACKING SET '%s'\n"%CONF.SET+"*"*60)
+
+SET_FILE=CONF.SETS_DIR+CONF.SET+".zip"
+if not os.path.isfile(SET_FILE):
+    error("No set file '%s'"%SET_FILE)
+
 OUT_DIR=CONF.SCR_DIR+CONF.SET+"/"
 CFG=[line.rstrip('\n') for line in open(CONF.SETS_DIR+CONF.CFG+".cfg")]
-AIA=dict()
-AIA_FILE=OUT_DIR+CONF.SET+".aia"
-SET_FILE=CONF.SETS_DIR+CONF.SET+".zip"
+
 PLOT_DIR=OUT_DIR+"plots/"
+
 ELOG=open("errors.log","a")
 SYSOPTS=dict(qexit=[True,ELOG])
-if not os.path.isfile(SET_FILE):
-    error("No set file '%s'"%setfile)
+
+AIA=dict()
+AIA_FILE=OUT_DIR+CONF.SET+".aia"
 
 
 # ### Unpack the images
@@ -55,6 +60,7 @@ if not os.path.isdir(OUT_DIR) or CONF.OVERWRITE:
     out=System("rm -rf "+OUT_DIR,**SYSOPTS)
     out=System("mkdir -p "+OUT_DIR,**SYSOPTS)
     out=System("mkdir -p "+PLOT_DIR,**SYSOPTS)
+    out=System("cp "+CONF.INPUT_DIR+"analysis/* "+OUT_DIR)
     out=System("unzip -j -o -d "+OUT_DIR+" "+SET_FILE,**SYSOPTS)
     pickle.dump(AIA,open(AIA_FILE,"wb"))
 else:
@@ -384,9 +390,21 @@ if CONF.QPLOT:
 Image(filename=plotfile)
 
 
-# In[9]:
+# In[35]:
 
 
 print("Task completed.")
 FLOG.close()
+
+
+# In[42]:
+
+
+CONF.SET="/home/astrometry/iasc/data/sets/ps1-20180108_3_set013.zip"
+
+
+# In[43]:
+
+
+CONF.SET.split("/")[-1].replace(".zip","")
 

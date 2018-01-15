@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[1]:
+# In[2]:
 
 
 from aisteroid import *
@@ -15,7 +15,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[2]:
+# In[3]:
 
 
 if QIPY:
@@ -29,7 +29,7 @@ if QIPY:
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[4]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -58,7 +58,7 @@ else:
 
 # ### Telescope and camera (detector) properties
 
-# In[4]:
+# In[5]:
 
 
 print0("Telescope & CCD Properties:")
@@ -92,7 +92,7 @@ print("\tDone.")
 
 # ### Download stars in the field of the image set
 
-# In[5]:
+# In[6]:
 
 
 print("Stars in the field covered by the images")
@@ -135,7 +135,7 @@ FLOG.flush()
 
 # ### Show stars in the field
 
-# In[6]:
+# In[7]:
 
 
 plotfile=PLOT_DIR+"stars-%s.png"%CONF.SET
@@ -165,7 +165,7 @@ Image(filename=plotfile)
 
 # ### Matching detected stars with sources
 
-# In[7]:
+# In[8]:
 
 
 print("Matching stars")
@@ -253,10 +253,10 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
 
         #Last verification
         nstars=stars.rename(columns={"ALPHA_J2000":"RA","DELTA_J2000":"DEC"})
-        
-        adist=distanceSets([0,0],bright,nstars,"RA","DEC")/nbright/ARCSEC
         imgsources=sources[sources.IMG==i]
         bright=imgsources.loc[indbright]
+        
+        adist=distanceSets([0,0],bright,nstars,"RA","DEC")/nbright/ARCSEC
         print1("\t\tAverage distance to stars after astrometry:",adist)
 
         FLOG.write("Average error after astrometry in image %d: %f\n"%(i,adist))

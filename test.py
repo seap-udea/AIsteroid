@@ -15,13 +15,6 @@ from aisteroid import *
 
 print0("Testing AIsteroid.")
 
-nx=2400.0
-ny=2400.0
-
-bs=polygonGen(1,1,nx,ny,4,4)
-print(bs)
-exit(0)
-
 #######################################################
 #CONFIGURATION TEST
 #######################################################

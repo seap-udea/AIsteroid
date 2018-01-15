@@ -49,9 +49,14 @@ if not os.path.isfile(AIA_FILE):
     error("Extract task not ran yet on set '%s'"%CONF.SET)
 else:
     AIA=pickle.load(open(AIA_FILE,"rb"))
-    images=AIA["images"]
-    sources=AIA["sources"]
-    nimgs=len(images)
+    try:
+        images=AIA["images"]
+        sources=AIA["sources"]
+        nimgs=len(images)
+    except:
+        error("There is an error in the analysis")
+    if nimgs==1:
+        error("Analysis can't be ran with only just 1 image")
 
 
 # ### Detect potential moving objects

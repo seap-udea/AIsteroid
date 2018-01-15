@@ -50,13 +50,19 @@ if not os.path.isfile(AIA_FILE):
     error("Astrometry task not ran yet on set '%s'"%CONF.SET)
 else:
     AIA=pickle.load(open(AIA_FILE,"rb"))
-    images=AIA["images"]
-    borders=AIA["borders"]
-    sources=AIA["sources"]
-    objects=AIA["objects"]
-    detector=AIA["detector"]
-    nimgs=len(images)
-    nobj=len(objects)
+    try:
+        images=AIA["images"]
+        borders=AIA["borders"]
+        sources=AIA["sources"]
+        objects=AIA["objects"]
+        detector=AIA["detector"]
+        nimgs=len(images)
+        nobj=len(objects)
+    except:
+        error("There is an error in the analysis")
+
+    if nimgs==1:
+        error("Analysis can't be ran with only just 1 image")
 
 
 # ### Photometry & results of photometry

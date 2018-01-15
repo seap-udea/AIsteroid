@@ -25,6 +25,7 @@ from scipy.optimize import minimize
 #ASTROALIGN
 from astroquery.vizier import Vizier
 from skimage.transform import SimilarityTransform,AffineTransform
+from shapely.geometry import Polygon, Point
 
 #SYSTEM
 import pickle,os,time,glob,collections,warnings,pprint
@@ -189,17 +190,18 @@ def Config(c,x):
         except:vs=vs[0]
     return vs
 
-def dec2sex(d,format="list"):
+def dec2sex(d,fmt="list",sep=" "):
     s=np.sign(d)
     d=np.abs(d)
     dg=int(d)
     mm=(d-dg)*60
     mg=int(mm)
     sg=(mm-mg)*60
-    if format=="list":
+    sex=None
+    if fmt=="list":
         sex=s*dg,mg,sg
-    if format=="string":
-        sex="%02d %02d %02.2f"%(s*dg,mg,sg)
+    if fmt=="string":
+        sex="%02d%s%02d%s%02.2f"%(s*dg,sep,mg,sep,sg)
     return sex
 
 #Intelligent Shell script execution
@@ -410,6 +412,23 @@ def saveAnim(ani,directory,animfile,nimg=4):
     cmd="convert -delay 100 $(find %s -name '.blink*.png' -o -name 'frame*.png' |sort |head -n %d) %s"%(directory,nimg,animfile)
     out=System(cmd)
     out=System("rm -rf %s/.blink*"%directory)
+
+def polygonGen(xo,yo,wx,wy,nx=2,ny=2):
+
+    bs=[]
+
+    for x in np.linspace(xo,xo+wx,nx):
+        bs+=[[x,yo]]
+    for y in np.linspace(yo,yo+wy,ny)[1:]:
+        bs+=[[xo+wx,y]]
+    for x in np.linspace(xo,xo+wx,nx)[::-1][1:]:
+        bs+=[[x,yo+wy]]
+    for y in np.linspace(yo,yo+wy,ny)[::-1][1:]:
+        bs+=[[xo,y]]
+
+    bs=np.array(bs)
+
+    return bs
 
 if __name__=="__main__":
 

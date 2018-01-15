@@ -46,7 +46,6 @@ FLOG=open(OUT_DIR+"photometry.log","a")
 SYSOPTS=dict(qexit=[True,FLOG])
 
 AIA_FILE=OUT_DIR+CONF.SET+".aia"
-AIA_FILE=OUT_DIR+CONF.SET+".aia"
 if not os.path.isfile(AIA_FILE):
     error("Astrometry task not ran yet on set '%s'"%CONF.SET)
 else:
@@ -289,27 +288,31 @@ if nobj>0:
                 snrs=np.array(snrs)
 
                 #Storing object properties
-                photometry.loc[photometry.IDOBJ==idobj,"MAG_MIN"]=mags.min()
-                photometry.loc[photometry.IDOBJ==idobj,"MAG_MAX"]=mags.max()
-                photometry.loc[photometry.IDOBJ==idobj,"MAG_RANGE"]=mags.max()-mags.min()
-                photometry.loc[photometry.IDOBJ==idobj,"MAG_MEAN"]=mags.mean()
-                photometry.loc[photometry.IDOBJ==idobj,"MAG_VAR"]=mags.std()
+                try:
+                    photometry.loc[photometry.IDOBJ==idobj,"MAG_MIN"]=mags.min()
+                    photometry.loc[photometry.IDOBJ==idobj,"MAG_MAX"]=mags.max()
+                    photometry.loc[photometry.IDOBJ==idobj,"MAG_RANGE"]=mags.max()-mags.min()
+                    photometry.loc[photometry.IDOBJ==idobj,"MAG_MEAN"]=mags.mean()
+                    photometry.loc[photometry.IDOBJ==idobj,"MAG_VAR"]=mags.std()
 
-                photometry.loc[photometry.IDOBJ==idobj,"SNR_MIN"]=snrs.min()
-                photometry.loc[photometry.IDOBJ==idobj,"SNR_MAX"]=snrs.max()
-                photometry.loc[photometry.IDOBJ==idobj,"SNR_RANGE"]=snrs.max()-snrs.min()
-                photometry.loc[photometry.IDOBJ==idobj,"SNR_MEAN"]=snrs.mean()
-                photometry.loc[photometry.IDOBJ==idobj,"SNR_VAR"]=snrs.std()
+                    photometry.loc[photometry.IDOBJ==idobj,"SNR_MIN"]=snrs.min()
+                    photometry.loc[photometry.IDOBJ==idobj,"SNR_MAX"]=snrs.max()
+                    photometry.loc[photometry.IDOBJ==idobj,"SNR_RANGE"]=snrs.max()-snrs.min()
+                    photometry.loc[photometry.IDOBJ==idobj,"SNR_MEAN"]=snrs.mean()
+                    photometry.loc[photometry.IDOBJ==idobj,"SNR_VAR"]=snrs.std()
 
-                print1("\t\tMag: [%.1f,%.1f:%.1f] %.1f +/- %.2f"%(mags.min(),mags.max(),
-                                                                 mags.max()-mags.min(),
-                                                                 mags.mean(),mags.std()))
-                print1("\t\tSNR: [%.1f,%.1f:%.1f] %.1f +/- %.2f"%(snrs.min(),snrs.max(),
-                                                                 snrs.max()-snrs.min(),
-                                                                 snrs.mean(),snrs.std()))
-                photometry.to_csv(OUT_DIR+"photometry-%s.csv"%CONF.SET,index=False)
-                print0("\t\tPhotometry for object %d completed"%n)
-                print0("\t\tNumber of images relevant:%d"%nrel)
+                    print1("\t\tMag: [%.1f,%.1f:%.1f] %.1f +/- %.2f"%(mags.min(),mags.max(),
+                                                                     mags.max()-mags.min(),
+                                                                     mags.mean(),mags.std()))
+                    print1("\t\tSNR: [%.1f,%.1f:%.1f] %.1f +/- %.2f"%(snrs.min(),snrs.max(),
+                                                                     snrs.max()-snrs.min(),
+                                                                     snrs.mean(),snrs.std()))
+                    photometry.to_csv(OUT_DIR+"photometry-%s.csv"%CONF.SET,index=False)
+                    print0("\t\tPhotometry for object %d completed"%n)
+                    print0("\t\tNumber of images relevant:%d"%nrel)
+                except:
+                    print1("\t\tError in photometry")
+                    
             else:
                 print1("\t\tNo significative image of object %d detected."%n)
                 

@@ -13,7 +13,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ## Task: Detect moving objects
 
-# In[2]:
+# In[6]:
 
 
 if QIPY:
@@ -23,12 +23,12 @@ if QIPY:
     CONF.OVERWRITE=1 ##Overwrite all previous actions
     CONF.VERBOSE=1 ## Show all outputs
     #CONF.SET="ps1-20180107_1_set045"
-    CONF.SET="ps1-20180108_2_set199"
+    #CONF.SET="ps1-20180108_2_set199"
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[7]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -376,6 +376,97 @@ if CONF.QPLOT and nobj>0:
     else:
         if CONF.QPLOT:print0("\tImage '%s' already generated."%plotfile)
     print0("\tDone.")
+Image(filename=plotfile)
+
+
+# ### Sources and moving objects detail
+
+# In[13]:
+
+
+plotfile="%s/sourcesdetail-%s.png"%(PLOT_DIR,CONF.SET)
+if CONF.QPLOT:
+    plt.ioff() ##Comment to see interactive figure
+
+    print0("Show all sources in detail (sections)")
+    if (not os.path.isfile(plotfile) or CONF.OVERWRITE) and CONF.QPLOT:    
+        
+        ratio=1.0
+        fig=plt.figure(figsize=(6*nimgs,6*ratio*10),)
+
+        axs=[]
+        na=0
+        n=nimgs
+        for iimg,image in enumerate(images):
+            data=images[iimg]["data"]
+            iaxe=10*iimg+1
+            axs+=[fig.add_subplot(10,nimgs,iaxe)];na+=1
+            iaxe=10*iimg+2
+            axs+=[fig.add_subplot(10,nimgs,iaxe)];na+=1
+            for i in range(8):
+                iaxe=10*iimg+3+i
+                axs+=[fig.add_subplot(10,nimgs,iaxe)]
+            #,sharex=axs[axi],sharey=axs[axi]
+
+        #sharex=axs[nimgs*iimg],sharey=axs[nimgs*iimg]
+        for iimg,image in enumerate(images): 
+            
+            data=images[iimg]["data"]
+            nrows,ncols=data.shape
+            drows=int(nrows/3)
+            dcols=int(ncols/3)
+            
+            imgargs=dict(cmap='gray_r',vmin=0,vmax=700)
+            ims00=axs[iimg].imshow(data,animated=True,**imgargs)
+            axs[iimg].axis("off")
+            axs[iimg].set_adjustable('box-forced')
+            axs[iimg].text(0.5,0.9,"All",color='b',transform=axs[iimg].transAxes,
+                           ha='right',va='top')
+
+            source=sources[(sources.IMG==iimg)&(sources.NIMG>=2)]
+            moving=sources[(sources.IMG==iimg)&(sources.NIMG<2)&(sources.MOBJ==0)]
+            objects=sources[(sources.IMG==iimg)&(sources.MOBJ>0)]
+            for i in range(3):
+                for j in range(3):
+
+                    irow=i*drows
+                    icol=j*dcols
+                    subimg=data[irow:irow+drows,icol:icol+dcols]
+                    secsource=source[(source.X_IMAGE>=icol)&(source.X_IMAGE<(icol+dcols))&                                     (source.Y_IMAGE>=irow)&(source.Y_IMAGE<(irow+drows))
+                                    ]
+
+                    axs[iimg].add_patch(pat.Rectangle([icol,irow],dcols,drows,color='r',fc='None'))
+                    axs[iimg].text(icol+dcols/2,irow+drows/2,"%d,%d"%(i,j),color='b',ha='center',va='center')
+
+                    n=(3*i+j+1)*nimgs+iimg
+                    
+                    #Show the subimage
+                    axs[n].imshow(subimg,animated=True,**imgargs)
+                    #Show the sources
+                    axs[n].plot(secsource["X_IMAGE"]-icol-1,secsource["Y_IMAGE"]-irow-1,'ro',
+                                ms=15,mfc='None',alpha=0.9)
+                    axs[n].plot(moving["X_IMAGE"]-icol-1,moving["Y_IMAGE"]-irow-1,'bs',
+                                ms=10,mfc='None',alpha=0.9)
+                    if len(objects)>0:
+                        axs[n].plot(objects["X_IMAGE"]-icol-1,objects["Y_IMAGE"]-irow-1,'gv',
+                                    ms=20,mfc='None',alpha=0.9)
+                    
+                    axs[n].text(0.02,0.98,"Image %d"%iimg,color='r',
+                                transform=axs[n].transAxes,ha='left',va='top')
+                    axs[n].text(0.98,0.98,"%d,%d"%(i,j),color='b',
+                                transform=axs[n].transAxes,ha='right',va='top')
+                    axs[n].axis("off")
+                    axs[n].set_xlim((0,dcols))
+                    axs[n].set_ylim((drows,0))
+                    axs[n].set_adjustable('box-forced')
+                    #break
+                #break
+        waterMark(axs[0])
+        fig.tight_layout()
+        fig.savefig(plotfile)
+    else:
+        print0("\tImage '%s' already generated."%plotfile)
+    print0("\tDone.")    
 Image(filename=plotfile)
 
 

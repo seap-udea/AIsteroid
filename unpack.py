@@ -15,20 +15,20 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[2]:
+# In[4]:
 
 
 if QIPY:
     #listImages() ##See the list of imagesets
     #CONF.SET="example" ##Choose your preferred imageset
     #CONF.CFG="example" ##You choose your preferred observatory configuration (example.cfg)
-    CONF.OVERWRITE=0 ##Overwrite all previous actions
+    CONF.OVERWRITE=1 ##Overwrite all previous actions
     CONF.VERBOSE=1 ## Show all outputs
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[5]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -52,7 +52,7 @@ AIA_FILE=OUT_DIR+CONF.SET+".aia"
 
 # ### Unpack the images
 
-# In[13]:
+# In[6]:
 
 
 print0("Unpacking images of set %s"%(CONF.SET))

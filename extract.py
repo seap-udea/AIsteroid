@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[1]:
+# In[5]:
 
 
 from aisteroid import *
@@ -15,7 +15,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ### Choose the image set
 
-# In[2]:
+# In[6]:
 
 
 if QIPY:
@@ -29,7 +29,7 @@ if QIPY:
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[3]:
+# In[7]:
 
 
 #DO NOT MODIFY THIS LINES
@@ -56,7 +56,7 @@ else:
 
 # ### Extract sources
 
-# In[4]:
+# In[8]:
 
 
 print0("Extracting sources")
@@ -119,7 +119,7 @@ FLOG.flush()
 
 # ### Show sources
 
-# In[16]:
+# In[9]:
 
 
 plotfile=PLOT_DIR+"sources-%s.png"%CONF.SET

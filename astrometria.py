@@ -202,18 +202,18 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
         bright=imgsources.loc[indbright]
         nbright=len(bright)
 
-        print("\t\tNumber of selected bright stars:",len(bright))
+        print0("\t\tNumber of selected bright stars:",len(bright))
 
         adist=distanceSets([0,0],bright,stars,a,d)/nbright/ARCSEC
-        print("\t\tPresent average distance to stars:",adist)
+        print1("\t\tPresent average distance to stars:",adist)
         FLOG.write("Average error before astrometry in image %d: %f\n"%(i,adist))
 
         #Find optimal translation
         solution=minimize(distanceSets,[0,0],method='Nelder-Mead',tol=1e-6,args=(bright,stars,a,d))
         image["translation"]=solution.x
 
-        print("\t\tMatching parameters:",image["translation"])
-        print("\t\tImproved average distance:",distanceSets(image["translation"],bright,stars,a,d)/nbright/ARCSEC)
+        print1("\t\tMatching parameters:",image["translation"])
+        print1("\t\tImproved average distance:",distanceSets(image["translation"],bright,stars,a,d)/nbright/ARCSEC)
 
         #Translate position of stars
         bright[[a,d]]=[translation2D(image["translation"],[alpha,delta])                                     for alpha,delta in zip(bright[a],bright[d])]
@@ -227,10 +227,10 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
         FLOG.write("Zeropoint error = %.2f\n"%image["zerostd"])
 
         #Aligning positions
-        print("\t\tAligning")    
+        print1("\t\tAligning")    
         tr=SimilarityTransform()
         status=tr.estimate(bright[[a,d]].values,stars.loc[stars_ind,[a,d]].values)
-        print("\t\t\tSuccess:",status)
+        print1("\t\t\tSuccess:",status)
         image["astrometry"]=tr
 
         #Alligning all sources
@@ -253,8 +253,11 @@ if len(sources[sources.STAR>0])==0 or CONF.OVERWRITE:
 
         #Last verification
         nstars=stars.rename(columns={"ALPHA_J2000":"RA","DELTA_J2000":"DEC"})
+        
         adist=distanceSets([0,0],bright,nstars,"RA","DEC")/nbright/ARCSEC
-        print("\t\tAverage distance to stars after astrometry:",adist)
+        imgsources=sources[sources.IMG==i]
+        bright=imgsources.loc[indbright]
+        print1("\t\tAverage distance to stars after astrometry:",adist)
 
         FLOG.write("Average error after astrometry in image %d: %f\n"%(i,adist))
         

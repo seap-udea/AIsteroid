@@ -24,6 +24,8 @@ from scipy.optimize import minimize
 
 #ASTROALIGN
 from astroquery.vizier import Vizier
+#See examples in: http://astroweb.case.edu/jakub/TA/Query_databases.html
+from astroquery.skyview import SkyView
 from skimage.transform import SimilarityTransform,AffineTransform
 from shapely.geometry import Polygon, Point
 

@@ -372,16 +372,10 @@ animation.FuncAnimation(fig,updatefig,frames=range(4),
                         repeat=True,blit=True)
 
 
-# In[1]:
-
-
-#Ver ejemplos en: http://astroweb.case.edu/jakub/TA/Query_databases.html
-from astroquery.skyview import SkyView
-
-
 # In[2]:
 
 
+#Descarga una imagen del cielo
 img = SkyView.get_images(position='22:57:00,62:38:00',
                          survey=['DSS2 Red'],
                          pixels='800,800',

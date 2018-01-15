@@ -4,7 +4,7 @@
 # # AIsteroid
 # [http://bit.ly/aisteroid](http://bit.ly/aisteroid)
 
-# In[77]:
+# In[87]:
 
 
 from aisteroid import *
@@ -13,7 +13,7 @@ get_ipython().run_line_magic('matplotlib', 'nbagg')
 
 # ## Task: Compile information on the campaign
 
-# In[78]:
+# In[88]:
 
 
 if QIPY:
@@ -22,22 +22,26 @@ if QIPY:
     CONF.SET_LIST="sets-jan2018.list" ##List of image sets to compile information
     CONF.CAMPAIGN="jan2018"
     CONF.VERBOSE=0
-    CONF.OVERWRITE=0
+    CONF.OVERWRITE=1
 
 
 # #### DO NOT TOUCH IF YOU ARE NOT SURE
 
-# In[67]:
+# In[93]:
 
+
+print0("*"*60+"\nGENERATING REPORT FOR SET LIST '%s'\n"%CONF.SET_LIST+"*"*60)
 
 if not os.path.isfile(CONF.SET_LIST):
     error("Set list '%s' does not exist"%CONF.SET_LIST)
-    
+
 SET_LIST_NAME=CONF.SET_LIST.split("/")[-1].replace(".list","")
 TEAMS_FILE=CONF.DATA_DIR+"sets/teams-%s.txt"%CONF.CAMPAIGN
 CAMPS_FILE=CONF.DATA_DIR+"sets/campaign-%s.txt"%CONF.CAMPAIGN
 
-REP_FILE=SET_LIST_NAME+"-report.aia"
+CONF.REP_DIR="data/reports/"
+
+REP_FILE=CONF.REP_DIR+SET_LIST_NAME+"-report.aia"
 if os.path.isfile(REP_FILE):
     REP=pickle.load(open(REP_FILE,"rb"))
     sets=REP["sets"]
@@ -48,7 +52,7 @@ else:
 
 # ### Read information on image sets
 
-# In[76]:
+# In[90]:
 
 
 print("Gathering information on image sets")
@@ -152,7 +156,7 @@ else:
 # In[69]:
 
 
-repfile=SET_LIST_NAME+"-report.txt"
+repfile=CONF.REP_DIR+SET_LIST_NAME+"-report.txt"
 fr=open(repfile,"w")
 bar="-"*(135+6)+"\n"
 fr.write(bar)

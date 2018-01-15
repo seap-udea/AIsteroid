@@ -127,6 +127,10 @@ else:
     images=AIA["images"]
     nimgs=len(images)
 print0("\tDone.")
+
+if nimgs==1:
+    error("Analysis should be ran with more than 1 image")
+
 FLOG.flush()
 
 

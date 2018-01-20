@@ -12,6 +12,7 @@
 # Batch execution
 #######################################################
 COMMON="VERBOSE=1"
+O=0
 
 if [ "x$1" != "x" ];then
     set=$1
@@ -30,17 +31,17 @@ do
     echo 
 
     #Unpack
-    python3.5 unpack.py "SET='$set'" $COMMON OVERWRITE=0 QPLOT=1
+    python3.5 unpack.py "SET='$set'" $COMMON OVERWRITE=$O QPLOT=1
 
     #Extract
-    python3.5 extract.py "SET='$set'" $COMMON OVERWRITE=0 DETECT_THRESH=3 QPLOT=1
+    python3.5 extract.py "SET='$set'" $COMMON OVERWRITE=$O DETECT_THRESH=3 QPLOT=1
 
     #Detect
-    python3.5 detect.py "SET='$set'" $COMMON OVERWRITE=0 QPLOT=1
+    python3.5 detect.py "SET='$set'" $COMMON OVERWRITE=$O QPLOT=1
 
     #Astrometria
-    python3.5 astrometria.py "SET='$set'" $COMMON OVERWRITE=0 QPLOT=1
+    python3.5 astrometria.py "SET='$set'" $COMMON OVERWRITE=$O QPLOT=1
 
     #Photometry
-    python3.5 photometry.py "SET='$set'" $COMMON OVERWRITE=0 QPLOT=1
+    python3.5 photometry.py "SET='$set'" $COMMON OVERWRITE=$O QPLOT=1
 done

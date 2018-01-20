@@ -40,6 +40,7 @@ numteams[i]="$(seq 70 106) $(seq 111 111)"
 
 nset=$i
 
+date_over=$(date +%s -d "1/31/2018 1:00 PM")
 for iset in $(seq 1 $nset)
 do
     camp=${campset[$iset]}
@@ -54,11 +55,24 @@ do
     	echo "Team $grupo"
     	hfile="iasc$grupo.html"
     	wget -O $hfile --user $user --password $pass $baseurl/${pref}_$grupo
+
     	files=$(cat $hfile |sed -e "s/<br>/\n/gi" |grep "ps1" |awk -F">" '{print $2}' |sed -e "s/<\/A//gi")
+	
+	i=1
     	for file in $files
     	do
+    	    fecha=$(cat $hfile |sed -e "s/<br>/\n/gi" |grep "ps1" |awk -F">" '{print $1}' |awk -F"<A" '{print $1}' |awk -F"<A" '{print $1}' |awk -F" " '{$NF=""; print $0}' |head -n $i |tail -n 1)
+	    date_pack=$(date +%s -d "$fecha")
+	    if [ $date_pack -gt $date_over ];then 
+		nc=""
+		echo "Es posterior"
+	    else
+		nc="-nc"
+		echo "Es viejito"
+	    fi
+	    ((i++))
     	    echo "IASC_$grupo $file" >> $campname.txt
-    	    wget --random-wait --wait=1 -nc --user $user --password $pass $baseurl/IASC_$grupo/$file
+    	    wget --random-wait --wait=1 $nc --user $user --password $pass $baseurl/IASC_$grupo/$file -O $file
     	done
     	rm $hfile
     	stime=$(((RANDOM % 10)+1))
